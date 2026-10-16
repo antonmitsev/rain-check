@@ -81,6 +81,10 @@ A persistent UI banner and CSS theme are controlled by browser `online`/`offline
 
 The Vite build copies the files from `public/` directly into `dist/`. `manifest.webmanifest` describes the app and its installable icons; `sw.js` is registered after page load. After `vite build`, `scripts/prepare-pwa.mjs` generates `precache-manifest.json` from the real hashed output assets and assigns a unique cache name for each build. The service worker precaches the complete application shell, including all JS/CSS files, during installation, then uses network-first navigation with a cached fallback. Development mode does not register a service worker. Cross-origin Open-Meteo and Nominatim requests are deliberately not cached by the service worker; live weather and city search require a network connection. See [PWA guide](pwa.md).
 
+## Apache HTTPS enforcement
+
+The `public/.htaccess` file is copied to `dist/.htaccess` during the Vite build. On Apache hosting with `mod_rewrite` and permitted overrides, it redirects non-HTTPS requests to the same host/path/query over HTTPS (301). This is an Apache-level redirect, independent of the PWA service worker or JavaScript. The server needs a valid TLS certificate. Dotfiles must not be omitted during upload; see [deployment instructions](hosting-cpanel.md).
+
 ## Deployment
 
 See [Apache/cPanel deployment](hosting-cpanel.md).
