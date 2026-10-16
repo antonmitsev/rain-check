@@ -30,6 +30,10 @@ The service worker caches the application shell and the local static assets afte
 
 The service worker only handles same-origin GET requests; it deliberately does not intercept calls to weather or geocoding providers. It does not store precise location history or weather responses persistently.
 
+## Online version check
+
+Production builds include a static `version.json` endpoint (see [deployment guide](hosting-cpanel.md)). The service worker does not cache this file, so it can be requested separately from the installed app shell to identify the deployment. The file reports the build timestamp, not the installation or deployment time. No automatic update prompt is included in this version.
+
 ## Update behavior
 
 The app shell and assets are cached under a versioned cache name. New static assets are downloaded when requested. For future service worker changes, increment `CACHE_NAME` in `public/sw.js` to retire older caches. Navigation uses the network when available, with the cached app shell as a fallback.
