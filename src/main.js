@@ -15,6 +15,11 @@ const reverseCache = new Map();
 app.innerHTML = `
 <section class="shell">
   <header><div class="brand"><span class="brand-icon" aria-hidden="true">☁</span> RainCheck</div><span class="version" id="app-version" title="Application build">v0.1</span></header>
+  <div class="connection-banner" id="connection-banner" role="status" aria-live="polite">
+    <span class="connection-dot" aria-hidden="true"></span>
+    <strong id="connection-label">ONLINE</strong>
+    <span id="connection-description">Live weather available</span>
+  </div>
   <div class="hero"><div class="eyebrow">WEATHER IN TWO CLICKS</div><h1>Do I need an<br><em>umbrella?</em></h1><p>Two questions. Short answers. No sign-up.</p></div>
   <section class="location-panel" aria-label="Location">
     <div class="location-line"><span class="pin">⌖</span><div><small>Location</small><strong id="place">Not selected yet</strong><small id="location-status" class="location-status" aria-live="polite">Choose a city or find your location</small></div><button id="locate" class="link-btn" type="button">Find me</button></div>
@@ -29,6 +34,9 @@ app.innerHTML = `
 </section>`;
 
 const versionBadge = document.querySelector('#app-version');
+const connectionLabel = document.querySelector('#connection-label');
+const connectionDescription = document.querySelector('#connection-description');
+const themeMeta = document.querySelector('meta[name="theme-color"]');
 
 function showBuildVersion() {
   // This metadata is bundled with the exact JavaScript currently running, even offline.
@@ -60,7 +68,32 @@ function render(message, category = '') {
 }
 function setBusy(value) {
   busy = value;
-  [...actionButtons, locateButton, cityForm.querySelector('button')].forEach(b => b.disabled = value);
+  const offline = !navigator.onLine;
+  actionButtons.forEach(button => { button.disabled = value || offline; });
+  locateButton.disabled = value;
+  cityForm.querySelector('button').disabled = value || offline;
+  cityInput.disabled = offline;
+}
+
+function updateConnectionState() {
+  const offline = !navigator.onLine;
+  const wasOffline = document.body.classList.contains('offline-mode');
+  document.body.classList.toggle('offline-mode', offline);
+  connectionLabel.textContent = offline ? 'OFFLINE' : 'ONLINE';
+  connectionDescription.textContent = offline
+    ? 'Live weather and city search are unavailable'
+    : 'Live weather available';
+  themeMeta?.setAttribute('content', offline ? '#382a22' : '#101c2d');
+  setBusy(busy);
+
+  if (offline) {
+    clearTimeout(suggestionTimer);
+    suggestionController?.abort();
+    clearSuggestions();
+    if (!busy) render('Offline mode. Reconnect to check current rainfall.', 'offline');
+  } else if (wasOffline && !busy) {
+    render('Connection restored. Choose a question for fresh weather data.', 'success');
+  }
 }
 function setLocation(latitude, longitude, name, source = 'city') {
   clearTimeout(suggestionTimer);
@@ -70,7 +103,10 @@ function setLocation(latitude, longitude, name, source = 'city') {
   status.textContent = source === 'gps' ? '✓ GPS location confirmed' : '✓ Location selected';
   cityInput.value = source === 'gps' ? '' : name;
   clearSuggestions();
-  render('Location confirmed. Choose a question.', 'success');
+  render(navigator.onLine
+    ? 'Location confirmed. Choose a question.'
+    : 'Location confirmed. Reconnect to check live weather.',
+    navigator.onLine ? 'success' : 'offline');
 }
 function clearSuggestions() {
   suggestions.replaceChildren();
@@ -179,6 +215,7 @@ async function locate() {
 }
 async function chooseCity(event) {
   event.preventDefault();
+  if (!navigator.onLine) return render('City search requires an internet connection.', 'offline');
   if (busy) return;
   const name = cityInput.value.trim();
   if (name.length < 2) return;
@@ -262,6 +299,7 @@ function rainUntil(data) {
   return 'The near-term forecast does not show a clear end to the rain.';
 }
 async function ask(kind) {
+  if (!navigator.onLine) return render('Live weather is unavailable offline. Reconnect and try again.', 'offline');
   if (busy) return;
   if (!location) return render('First select Find me or enter a city.', 'error');
   setBusy(true);
@@ -283,6 +321,10 @@ locateButton.addEventListener('click', locate);
 cityForm.addEventListener('submit', chooseCity);
 actionButtons[0].addEventListener('click', () => ask('now'));
 actionButtons[1].addEventListener('click', () => ask('until'));
+
+window.addEventListener('online', updateConnectionState);
+window.addEventListener('offline', updateConnectionState);
+updateConnectionState();
 
 void locate();
 
