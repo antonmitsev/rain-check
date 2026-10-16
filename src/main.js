@@ -33,28 +33,25 @@ app.innerHTML = `
     <div class="location-line"><span class="pin">⌖</span><div><small>Location</small><strong id="place">Not selected yet</strong><small id="location-status" class="location-status" aria-live="polite">Choose a city or find your location</small></div><button id="locate" class="link-btn" type="button">Find me</button></div>
     <form id="city-form"><label for="city">Or enter a city</label><div class="city-input"><input id="city" name="city" placeholder="e.g. London" autocomplete="address-level2" required minlength="2"><button type="submit">Search</button></div><div id="suggestions" class="suggestions" role="listbox" aria-label="City suggestions" hidden></div></form>
   </section>
-  <div class="actions"><button id="check" class="action" type="button"><span class="action-symbol">☔</span><span>Check weather</span><small>Current conditions & next change</small></button></div>
+  <div class="actions"><button id="check" class="action" type="button"><span class="action-symbol" aria-hidden="true">☔</span><span>Check weather</span></button></div>
   <section id="weather-results" class="weather-results" aria-live="polite">
     <article class="weather-summary neutral" id="summary-card" aria-label="Current rain and the next change">
       <div class="summary-main">
         <div class="summary-phase summary-current">
-          <span class="summary-overline">СЕГА</span>
           <strong class="summary-headline" id="summary-now">—</strong>
         </div>
         <span class="summary-arrow" aria-hidden="true">→</span>
         <div class="summary-phase summary-future">
-          <span class="summary-overline">ПРОГНОЗА</span>
           <strong class="summary-headline summary-transition" id="summary-next">—</strong>
           <strong class="summary-time" id="summary-time"></strong>
           <span class="summary-day" id="summary-day"></span>
         </div>
       </div>
-      <p class="summary-detail" id="summary-detail">Choose a location and press Check weather.</p>
-      <p class="summary-meta" id="summary-meta">Forecast times are approximate.</p>
+      <p class="summary-meta" id="summary-meta">Check weather to see the forecast.</p>
     </article>
   </section>
-  <section class="history" aria-label="Recent weather checks">
-    <div class="history-heading"><h2>Recent checks</h2><small>Last 3 locations · saved on this device</small></div>
+  <section class="history" id="recent-checks" aria-label="Recent weather checks" hidden>
+    <div class="history-heading"><h2>Recent checks</h2></div>
     <div id="history-list" class="history-list"></div>
   </section>
   <footer>
@@ -98,8 +95,8 @@ const summaryNow = document.querySelector('#summary-now');
 const summaryNext = document.querySelector('#summary-next');
 const summaryTime = document.querySelector('#summary-time');
 const summaryDay = document.querySelector('#summary-day');
-const summaryDetail = document.querySelector('#summary-detail');
 const summaryMeta = document.querySelector('#summary-meta');
+const historyPanel = document.querySelector('#recent-checks');
 const historyList = document.querySelector('#history-list');
 
 function render(message, category = '') {
@@ -127,7 +124,7 @@ function forecastTimeParts(forecastText) {
   if (!match) return null;
   return {
     time: match[1],
-    day: match[2] === 'tomorrow' ? 'утре' : match[2] === 'today' ? 'днес' : (match[3] || '')
+    day: match[2] === 'tomorrow' ? 'tomorrow' : match[2] === 'today' ? 'today' : (match[3] || '')
   };
 }
 
@@ -137,38 +134,44 @@ function clearWeatherSummary() {
   summaryNext.textContent = '—';
   summaryTime.textContent = '';
   summaryDay.textContent = '';
-  summaryDetail.textContent = 'Choose a location and press Check weather.';
-  summaryMeta.textContent = 'Forecast times are approximate.';
+  summaryMeta.textContent = 'Check weather to see the forecast.';
 }
 
-function displayWeather(raining, forecastText, { cached = false, savedAt = null, observedAt = null } = {}) {
-  summaryCard.className = `weather-summary ${raining === true ? 'wet-to-dry' : raining === false ? 'dry-to-wet' : 'neutral'}`;
-  summaryNow.textContent = raining === true ? 'ВАЛИ' : raining === false ? 'СУХО' : 'НЕЯСНО';
-  const next = forecastTimeParts(forecastText);
-  if (raining !== null && next) {
-    summaryNext.textContent = raining ? 'СПИРА В' : 'ЗАПОЧВА В';
-    summaryTime.textContent = next.time;
-    summaryDay.textContent = next.day;
-  } else {
-    const noRain = raining === false && typeof forecastText === 'string'
-      && forecastText.includes('No rain is forecast');
-    summaryNext.textContent = noRain ? 'НЕ СЕ ОЧАКВА' : 'НЕЯСНО';
-    summaryTime.textContent = '';
-    summaryDay.textContent = '';
+function compactForecast(raining, text) {
+  const next = forecastTimeParts(text);
+  if (next) {
+    const day = next.day ? ` ${next.day}` : '';
+    return `${raining === true ? 'Stops' : 'Starts'} ~${next.time}${day}`;
   }
-  summaryDetail.textContent = forecastText || 'No reliable hourly forecast is available.';
-  const meta = [cached ? 'Saved forecast · not live' : 'Forecast · approximate'];
+  if (raining === false && typeof text === 'string' && text.includes('No rain is forecast')) {
+    return 'No rain expected';
+  }
+  return 'Time unknown';
+}
+
+function displayWeather(raining, forecastText, { cached = false, savedAt = null } = {}) {
+  const next = forecastTimeParts(forecastText);
+  const noRainExpected = raining === false && typeof forecastText === 'string'
+    && forecastText.includes('No rain is forecast');
+  const tone = raining === null ? 'neutral' : next
+    ? (raining ? 'wet-to-dry' : 'dry-to-wet')
+    : raining ? 'wet-only' : 'dry-only';
+  summaryCard.className = `weather-summary ${tone}`;
+  summaryNow.textContent = raining === true ? 'RAINING' : raining === false ? 'DRY' : 'UNKNOWN';
+  summaryNext.textContent = next
+    ? (raining ? 'STOPS AT' : 'STARTS AT')
+    : noRainExpected ? 'NO RAIN EXPECTED' : 'TIME UNKNOWN';
+  summaryTime.textContent = next?.time ?? '';
+  summaryDay.textContent = next?.day ?? '';
+  const meta = [cached ? 'CACHED' : null, 'APPROXIMATE'].filter(Boolean);
   if (Number.isFinite(savedAt)) {
-    meta.push(`Fetched: ${new Date(savedAt).toLocaleString('en-GB', {
+    meta.push(`Fetched on ${new Date(savedAt).toLocaleString('en-GB', {
       day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
     })}`);
   }
-  if (typeof observedAt === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(observedAt)) {
-    meta.push(`Weather time: ${observedAt.replace('T', ' ')} (local)`);
-  }
   summaryMeta.textContent = meta.join(' · ');
-  if (cached) render('Showing saved conditions. Not live weather.', 'offline');
-  else render('Forecast updated. Times are approximate.', 'success');
+  if (cached) render('Showing saved weather.', 'offline');
+  else render('Weather updated.', 'success');
 }
 
 function setBusy(value) {
@@ -185,7 +188,7 @@ function displaySavedSnapshot(saved) {
     : saved.raining === false ? (saved.nextRainForecast || 'No saved start-time forecast is available.')
     : 'No reliable forecast is available.';
   displayWeather(saved.raining, forecastText, {
-    cached: true, savedAt: saved.savedAt, observedAt: saved.observedAt
+    cached: true, savedAt: saved.savedAt
   });
 }
 
@@ -219,13 +222,8 @@ function openHistoryEntry(entry) {
 function renderHistory() {
   historyList.replaceChildren();
   const entries = getWeatherHistory();
-  if (!entries.length) {
-    const empty = document.createElement('p');
-    empty.className = 'history-empty';
-    empty.textContent = 'No weather checks saved yet. Check the weather to start your history.';
-    historyList.append(empty);
-    return;
-  }
+  historyPanel.hidden = entries.length === 0;
+  if (!entries.length) return;
   for (const entry of entries) {
     // Two sibling buttons inside the same card: accessible, with no nested buttons.
     const row = document.createElement('div');
@@ -255,11 +253,8 @@ function renderHistory() {
     badge.textContent = entry.snapshot.raining === true ? 'RAINING' : entry.snapshot.raining === false ? 'DRY' : 'UNKNOWN';
     const summary = document.createElement('span');
     summary.className = 'history-summary';
-    summary.textContent = entry.snapshot.raining === true
-      ? entry.snapshot.stopForecast
-      : entry.snapshot.raining === false
-        ? (entry.snapshot.nextRainForecast || 'No saved next-rain forecast')
-        : 'Conditions unavailable';
+    summary.textContent = compactForecast(entry.snapshot.raining,
+      entry.snapshot.raining === true ? entry.snapshot.stopForecast : entry.snapshot.nextRainForecast);
     details.append(badge, summary);
     button.append(heading, details);
     button.addEventListener('click', () => openHistoryEntry(entry));
@@ -594,7 +589,7 @@ async function ask() {
       raining === true ? rainUntil(data)
         : raining === false ? rainStarts(data)
         : 'Current conditions are uncertain.',
-      { savedAt: saved?.savedAt ?? null, observedAt: data.current?.time });
+      { savedAt: saved?.savedAt ?? null });
     // Only explicit checks create history; silent location prefetch does not.
     const snapshot = getWeatherSnapshot(selected);
     if (snapshot) {
