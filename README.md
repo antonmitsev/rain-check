@@ -84,6 +84,7 @@ Vite + vanilla JavaScript + CSS. There is no React runtime; this keeps the app s
 
 ## Documentation
 
+- [PWA Generation Playbook — reusable engineering and UX reference for AI agents](docs/PWA_Generation_Playbook.md)
 - [MVP requirements](docs/requirements.md)
 - [Architecture and algorithm](docs/architecture.md)
 - [Apache shared hosting / cPanel](docs/hosting-cpanel.md)
