@@ -10,6 +10,7 @@ A minimal weather app answering two questions: **"Is it raining?"** and **"When 
 - Open-Meteo API, 10-minute in-memory cache, no user accounts, backend, database, or AI service.
 - Responsive interface; deployable as a static website on Apache/cPanel.
 - Installable PWA with home-screen icons and offline app shell. Live weather and city search require connectivity.
+- Prominent connectivity banner: **ONLINE**, **OFFLINE**, or **SERVER UNREACHABLE**. An amber offline-style theme appears whenever the browser is offline or the app server cannot be reached. The origin check is a network-only fetch of `version.json`; a server outage does not automatically disable weather services on an otherwise connected device.
 
 ## Run locally
 
@@ -29,6 +30,10 @@ npm run build
 Upload **all contents of `dist/`**, including `precache-manifest.json`, to the domain or subdomain's document root. Do not upload `src/` or `node_modules/`.
 
 **[Apache, cPanel, DNS and optional Git deployment instructions](docs/hosting-cpanel.md)**
+
+## Connectivity status
+
+The banner responds to browser online/offline events and checks the app server on startup, focus, and return to a visible tab. **OFFLINE** means the browser reports no network connectivity (live actions disabled). **SERVER UNREACHABLE** means the app was loaded from cache but its origin cannot be reached; external weather APIs might still work, so the buttons remain enabled. **ONLINE** means the browser reports a connection and the origin check has not failed. `navigator.onLine` and origin reachability are only indicators, not guarantees that every weather provider is available.
 
 ## Testing PWA offline
 
