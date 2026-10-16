@@ -1,12 +1,13 @@
 # RainCheck ☔
 
-A minimal weather app answering two questions: **"Is it raining?"** and **"When will it stop raining?"**
+A minimal weather app that checks current rainfall and the next expected weather change with a single action.
 
 ## Features
 
 - Automatically requests browser geolocation at startup (subject to browser permission); manual city search remains available if location access fails.
-- **Is it raining?** — reports current rain; if it is dry, estimates when the next rain or showers are expected from the hourly forecast (or explains when none is forecast).
-- **When will it stop raining?** — approximate stop time from an hourly forecast.
+- One **Check weather** button updates two status cards: current **Raining / Dry** and upcoming **Will stop / Will start**.
+- Wet states and their badges are blue; dry states and their badges are yellow. The upcoming change uses the opposite color of the current conditions.
+- Hourly forecasts provide approximate next-rain onset or rain-stop time; both cards support historical offline snapshots.
 - Open-Meteo API, 10-minute in-memory cache, no user accounts, backend, database, or AI service.
 - Responsive interface; deployable as a static website on Apache/cPanel.
 - Installable PWA with an offline app shell and **saved weather snapshots**, available without a network.
