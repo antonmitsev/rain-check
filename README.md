@@ -1,20 +1,20 @@
 # RainCheck ☔
 
-A minimal weather app that checks current rainfall and the next expected weather change with a single action.
+A minimal weather app that checks current rainfall and its next expected change with one action and one prominent gradient summary.
 
 ## Features
 
 - Automatically requests browser geolocation at startup (subject to browser permission); manual city search remains available if location access fails.
-- One **Check weather** button updates two status cards: current **Raining / Dry** and upcoming **Will stop / Will start**.
+- One **Check weather** button updates **one gradient summary** with two bold phases: **ВАЛИ / СПИРА В [time]** when raining or **СУХО / ЗАПОЧВА В [time]** when dry.
 - **Recent checks** shows the last three distinct checked locations, newest first. Rechecking a location replaces its previous entry. Tap an entry to display its saved conditions **without making any network request**.
-- Wet states and their badges are blue; dry states and their badges are yellow. The upcoming change uses the opposite color of the current conditions.
-- Hourly forecasts provide approximate next-rain onset or rain-stop time; both cards support historical offline snapshots.
+- The background runs **blue → yellow** for wet-to-dry and **yellow → blue** for dry-to-wet. If no reliable transition time exists, the display says so rather than inventing an hour. Saved history uses the same summary layout.
+- Hourly forecasts provide approximate next-rain onset or rain-stop time. Observation time, fetch time, forecast detail, and whether the result is saved are shown in smaller text inside the summary.
 - Open-Meteo API, 10-minute in-memory cache, no user accounts, backend, database, or AI service.
 - Responsive interface; deployable as a static website on Apache/cPanel.
 - Installable PWA with an offline app shell and **saved weather snapshots**, available without a network.
 - A successful weather fetch is saved on-device along with the selected location, its observation timestamp, and the time it was saved. Up to eight locations are retained; the saved data is always labeled as historical, never live.
 - No persistent status banner while online: the connectivity warning appears only for **OFFLINE** or **SERVER UNREACHABLE**. The amber offline theme is retained for those states. The origin check is a network-only fetch of `version.json`; a server outage does not automatically disable external weather services.
-- Status, loading, and error messages appear as brief, auto-dismissed **top toasts** instead of a permanent Answer/Status panel. The hero eyebrow reads `RAIN AT A GLANCE | TWO QUESTIONS. SHORT ANSWERS. NO SIGN-UP.`, and the compact headline uses subtle positive letter spacing.
+- Status, loading, and error messages appear as **top toasts** that slide down from above and exit to the left when dismissed. Motion is reduced when the operating system requests reduced animations; the footer is pushed to the bottom of short pages without covering longer content. The hero eyebrow reads `RAIN AT A GLANCE | TWO QUESTIONS. SHORT ANSWERS. NO SIGN-UP.`, and the compact headline uses subtle positive letter spacing.
 
 ## Run locally
 
@@ -37,13 +37,13 @@ Upload **all contents of `dist/`**, including `precache-manifest.json` and hidde
 
 ## Connectivity status
 
-The warning banner is hidden during normal online operation to prioritize the forecast cards. It appears for OFFLINE and SERVER UNREACHABLE. Connectivity is checked on startup, focus, and return to a visible tab. **OFFLINE** means the browser reports no network connectivity (weather buttons immediately show the last saved observation or forecast without a request or loading spinner). **SERVER UNREACHABLE** means the app was loaded from cache but its origin cannot be reached; external weather APIs might still work, so the buttons remain enabled. When online and the origin check has not failed, the regular theme is used without a connection banner. `navigator.onLine` and origin reachability are only indicators, not guarantees that every weather provider is available. Offline city lookup and Find me do not make network requests; Find me reuses the saved location.
+The warning banner is hidden during normal online operation to prioritize the forecast cards. It appears for OFFLINE and SERVER UNREACHABLE. Connectivity is checked on startup, focus, and return to a visible tab. **OFFLINE** means the browser reports no network connectivity (the weather button immediately shows the last saved observation or forecast without a request or loading spinner). **SERVER UNREACHABLE** means the app was loaded from cache but its origin cannot be reached; external weather APIs might still work, so the buttons remain enabled. When online and the origin check has not failed, the regular theme is used without a connection banner. `navigator.onLine` and origin reachability are only indicators, not guarantees that every weather provider is available. Offline city lookup and Find me do not make network requests; Find me reuses the saved location.
 
 ## Offline cache and privacy
 
 Forecasts are silently prefetched after successful location selection and saved to browser `localStorage` following successful Open-Meteo requests. The last selected location and up to eight compact weather snapshots are kept on the device; coordinates are rounded to three decimal places before storage. Cached reports show the time the forecast was saved and, where provided, the Open-Meteo observation time. For dry weather, the cached response also retains the next predicted rain onset with an explicit calendar date, so offline `today`/`tomorrow` cannot become misleading. Cached rain-stop predictions describe the forecast **as it was at the saved time**.
 
-If no snapshot exists, the app immediately explains that an online visit is required. Offline mode never requests GPS, reverse geocoding, weather, or city suggestions, never shows a loading spinner, and leaves the two weather buttons clickable. Clear browser site data to delete the saved location and snapshots.
+If no snapshot exists, the app immediately explains that an online visit is required. Offline mode never requests GPS, reverse geocoding, weather, or city suggestions, never shows a loading spinner, and leaves the weather button clickable. Clear browser site data to delete the saved location and snapshots.
 
 The history is stored alongside snapshots in `localStorage` (`raincheck:offline:v1`). It holds at most three checked locations; opening a history entry never updates its time, reorders the list, calls geolocation, or requests a forecast. Checks use the existing in-memory cache when available, while silent location prefetches are not added to history. Offline Check weather clicks can update the recent-check order from saved data.
 
