@@ -8,6 +8,7 @@ A minimal weather app that checks current rainfall and its next expected change 
 - One **Check weather** button updates one compact gradient summary in English: **RAINING → STOPS AT [time]** or **DRY → STARTS AT [time]**.
 - **Recent checks** is hidden when empty. Otherwise it shows up to three distinct locations, newest first, with short labels such as **Starts ~19:00** instead of a full forecast sentence. Opening an entry uses saved data **without any network request**.
 - Layout widths are constrained from the page root through the cards and forms to prevent horizontal scrolling on narrow devices. Flex items may shrink and the heading may wrap on narrow screens; the application retains a centered **580px** desktop maximum.
+- **Landscape layout** (at least 740px viewport width): location/search on the left, Check weather and the status card on the right, with a centered **920px maximum-width** shell; portrait remains 580px. History uses responsive cards below the two columns.
 - The app uses a centered, full-width layout capped at **580px** on desktop. History text stays within the card on mobile and desktop, and a discreet **×** button sits **inside the top-right corner** of each history card. Removing a history item does not delete its cached forecast.
 - The background runs **blue → yellow** for wet-to-dry and **yellow → blue** for dry-to-wet. When no transition is forecast, the single-state color remains instead of implying a change. Unknown times are not invented.
 - Only the essential status and approximate time are prominent. A single compact line below reads **APPROXIMATE · Fetched on ...**, prefixed with **CACHED** for stored forecasts. The verbose forecast sentence and redundant observation-time line are no longer shown.
@@ -36,6 +37,17 @@ npm run build
 Upload **all contents of `dist/`**, including `precache-manifest.json` and hidden `.htaccess`, to the domain or subdomain's document root. The Apache `.htaccess` redirects HTTP traffic to HTTPS with a permanent 301, preserving the requested host, path, and query string. Ensure TLS is configured first. Do not upload `src/` or `node_modules/`.
 
 **[Apache, cPanel, DNS and optional Git deployment instructions](docs/hosting-cpanel.md)**
+
+## iPhone Home Screen icon
+
+RainCheck provides a dedicated, opaque **180×180 PNG** Apple touch icon (not just a Web Manifest icon). The artwork lives in `public/icons/app-icon.svg` and `scripts/prepare-icons.mjs` generates `apple-touch-icon.png`, `icon-192.png`, `icon-512.png`, and `favicon-32.png` **before both development and production builds**. The complete build uses:
+
+```sh
+npm install
+npm run build
+```
+
+Upload the full `dist/` including `icons/`. On iPhone, open `https://raincheck.tonymitsev.com/icons/apple-touch-icon.png` to verify the icon file is actually deployed. If a previously installed RainCheck shows only **R**, delete its **Home Screen shortcut** and use **Safari → Share → Add to Home Screen → Add** again. iOS may keep an older shortcut icon even when the installed PWA code updates. **Do not clear website data** merely to replace the shortcut, because that would erase saved forecasts/history.
 
 ## Deploying a fresh PWA build
 
@@ -85,6 +97,9 @@ Vite + vanilla JavaScript + CSS. There is no React runtime; this keeps the app s
 ## Documentation
 
 - [PWA Generation Playbook — reusable engineering and UX reference for AI agents](docs/PWA_Generation_Playbook.md)
+  - [Appendix C — Executable PWA reference architecture](docs/playbook/appendix-c-reference-architecture.md)
+  - [Appendix D — Domain/API specification template](docs/playbook/appendix-d-domain-specification.md)
+  - [Appendix E — UX tokens, components and iOS icons](docs/playbook/appendix-e-ux-design-system.md)
 - [MVP requirements](docs/requirements.md)
 - [Architecture and algorithm](docs/architecture.md)
 - [Apache shared hosting / cPanel](docs/hosting-cpanel.md)
