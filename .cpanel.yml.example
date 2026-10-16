@@ -1,0 +1,10 @@
+# OPTIONAL: rename to .cpanel.yml only if you use cPanel Git Version Control.
+# IMPORTANT: this deploys a PREBUILT dist/ committed to your cPanel-managed repository.
+# The normal GitHub source repo ignores dist/; this is NOT a build script.
+# Change USER and rain-check to your actual cPanel account and document root.
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/USER/public_html/rain-check/
+    - /bin/mkdir -p "$DEPLOYPATH"
+    - /bin/cp -R dist/. "$DEPLOYPATH"
