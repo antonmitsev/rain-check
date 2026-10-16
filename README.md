@@ -4,7 +4,7 @@ A minimal weather app answering two questions: **"Is it raining?"** and **"When 
 
 ## Features
 
-- Browser geolocation (with permission) or manual city search.
+- Automatically requests browser geolocation at startup (subject to browser permission); manual city search remains available if location access fails.
 - **Is it raining?** — current precipitation estimates for the selected area.
 - **When will it stop raining?** — approximate stop time from an hourly forecast.
 - Open-Meteo API, 10-minute in-memory cache, no user accounts, backend, database, or AI service.
