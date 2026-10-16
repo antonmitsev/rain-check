@@ -4,12 +4,15 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite --host 0.0.0.0",
-    "build": "vite build && node scripts/prepare-pwa.mjs",
+    "dev": "node scripts/prepare-icons.mjs && vite --host 0.0.0.0",
+    "build": "node scripts/prepare-icons.mjs && vite build && node scripts/prepare-pwa.mjs",
     "preview": "vite preview --host 0.0.0.0",
     "test": "node --test tests/*.test.js"
   },
   "dependencies": {
     "vite": "^6.3.5"
+  },
+  "devDependencies": {
+    "@resvg/resvg-js": "^2.6.2"
   }
 }
