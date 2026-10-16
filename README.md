@@ -44,7 +44,7 @@ Example response:
 }
 ```
 
-The version is read from `package.json`. `builtAt` is the UTC time of the build, not deployment time. `commit` uses `GITHUB_SHA` / `COMMIT_SHA` or the local Git HEAD; it is `null` when Git metadata is unavailable. Every build gets a new timestamp, even if the semantic version does not change. The header badge reads this endpoint and displays the package version plus the first seven characters of the commit hash (for example, `v0.1.0 · abc123d`). When Git metadata is unavailable, it shows only the version; when the endpoint cannot be loaded, the fallback badge is retained. See [deployment guide](docs/hosting-cpanel.md).
+The version is read from `package.json`. `builtAt` is the UTC time of the build, not deployment time. `commit` uses `GITHUB_SHA` / `COMMIT_SHA` or the local Git HEAD; it is `null` when Git metadata is unavailable. Every build gets a new timestamp, even if the semantic version does not change. The UI header displays build metadata embedded in the JavaScript bundle at compilation (for example, `v0.1.0 · abc123d`). This is the **running version**, including offline, and cannot accidentally display the metadata of a newer deployment. If Git metadata is missing it shows the semantic version only. The independent online `version.json` endpoint reports the **deployed version**, which may be newer than a cached PWA installation. See [deployment guide](docs/hosting-cpanel.md).
 
 ## Technology
 
