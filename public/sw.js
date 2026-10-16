@@ -13,7 +13,8 @@ self.addEventListener('install', event => {
     if (!Array.isArray(paths)) throw new Error('Invalid PWA precache manifest');
     const urls = [home.href, ...paths.map(path => new URL(path, SCOPE).href)];
     const cache = await caches.open(CACHE_NAME);
-    await cache.addAll(urls);
+    // Never precache stale HTTP-cache copies during a deployment upgrade.
+    await cache.addAll(urls.map(url => new Request(url, { cache: 'reload' })));
     await self.skipWaiting();
   })());
 });
@@ -40,7 +41,7 @@ self.addEventListener('fetch', event => {
   }
 
   if (request.mode === 'navigate') {
-    event.respondWith(fetch(request).then(response => {
+    event.respondWith(fetch(request, { cache: 'no-store' }).then(response => {
       if (response.ok) {
         const copy = response.clone();
         event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.put(home.href, copy)));
