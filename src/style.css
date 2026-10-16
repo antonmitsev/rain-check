@@ -203,3 +203,28 @@ footer{overflow-wrap:anywhere}
     gap: 10px;
   }
 }
+
+/* viewport-fit=cover allows the PWA to use iPhone landscape width; inset
+   padding keeps controls out of the notch and home-indicator areas. */
+.shell {
+  padding-top: max(32px, env(safe-area-inset-top));
+  padding-right: max(23px, env(safe-area-inset-right));
+  padding-bottom: max(38px, env(safe-area-inset-bottom));
+  padding-left: max(23px, env(safe-area-inset-left));
+}
+@media (max-width: 380px) {
+  .shell {
+    padding-top: max(24px, env(safe-area-inset-top));
+    padding-right: max(14px, env(safe-area-inset-right));
+    padding-bottom: max(24px, env(safe-area-inset-bottom));
+    padding-left: max(14px, env(safe-area-inset-left));
+  }
+}
+@media (orientation: landscape) and (min-width: 740px) {
+  .shell {
+    padding-top: max(18px, env(safe-area-inset-top));
+    padding-right: max(18px, env(safe-area-inset-right));
+    padding-bottom: max(22px, env(safe-area-inset-bottom));
+    padding-left: max(18px, env(safe-area-inset-left));
+  }
+}
