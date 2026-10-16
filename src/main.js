@@ -228,7 +228,7 @@ function updateConnectionState() {
     for (const request of inflightWeather.values()) request.controller.abort();
     clearSuggestions();
     setBusy(false);
-    showSavedWeather('now');
+    showSavedWeather();
   } else {
     setBusy(busy);
     if (originUnavailable && !hadWarning && !busy) {
@@ -366,7 +366,7 @@ function getCurrentPosition() {
 async function locate() {
   if (!navigator.onLine) {
     if (!location) restoreSavedLocation();
-    showSavedWeather('now');
+    showSavedWeather();
     return;
   }
   if (busy) return;
@@ -397,7 +397,7 @@ async function locate() {
 async function chooseCity(event) {
   event.preventDefault();
   if (!navigator.onLine) {
-    showSavedWeather('now');
+    showSavedWeather();
     return;
   }
   if (busy) return;
