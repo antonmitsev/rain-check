@@ -10,6 +10,8 @@ let suggestionTimer;
 let suggestionController;
 let cityMatches = [];
 let activeSuggestion = -1;
+let originUnavailable = false;
+let originCheckId = 0;
 const reverseCache = new Map();
 
 app.innerHTML = `
@@ -77,13 +79,14 @@ function setBusy(value) {
 
 function updateConnectionState() {
   const offline = !navigator.onLine;
-  const wasOffline = document.body.classList.contains('offline-mode');
-  document.body.classList.toggle('offline-mode', offline);
-  connectionLabel.textContent = offline ? 'OFFLINE' : 'ONLINE';
+  const warning = offline || originUnavailable;
+  const hadWarning = document.body.classList.contains('offline-mode');
+  document.body.classList.toggle('offline-mode', warning);
+  connectionLabel.textContent = offline ? 'OFFLINE' : originUnavailable ? 'SERVER UNREACHABLE' : 'ONLINE';
   connectionDescription.textContent = offline
     ? 'Live weather and city search are unavailable'
-    : 'Live weather available';
-  themeMeta?.setAttribute('content', offline ? '#382a22' : '#101c2d');
+    : originUnavailable ? 'App is cached; live weather may still work' : 'Live weather available';
+  themeMeta?.setAttribute('content', warning ? '#382a22' : '#101c2d');
   setBusy(busy);
 
   if (offline) {
@@ -91,9 +94,27 @@ function updateConnectionState() {
     suggestionController?.abort();
     clearSuggestions();
     if (!busy) render('Offline mode. Reconnect to check current rainfall.', 'offline');
-  } else if (wasOffline && !busy) {
+  } else if (originUnavailable && !hadWarning && !busy) {
+    render('The app server is unreachable. Cached UI is available; live weather may still work.', 'offline');
+  } else if (!warning && hadWarning && !busy) {
     render('Connection restored. Choose a question for fresh weather data.', 'success');
   }
+}
+
+// A cached PWA can run while its origin server is down, even if navigator.onLine is true.
+async function checkAppServer() {
+  if (!import.meta.env.PROD || !navigator.onLine) return;
+  const checkId = ++originCheckId;
+  let unavailable = false;
+  try {
+    // version.json is explicitly network-only in the service worker.
+    await fetch(new URL('./version.json', document.baseURI), { cache: 'no-store' });
+  } catch {
+    unavailable = true;
+  }
+  if (checkId !== originCheckId || !navigator.onLine) return;
+  originUnavailable = unavailable;
+  updateConnectionState();
 }
 function setLocation(latitude, longitude, name, source = 'city') {
   clearTimeout(suggestionTimer);
@@ -322,9 +343,22 @@ cityForm.addEventListener('submit', chooseCity);
 actionButtons[0].addEventListener('click', () => ask('now'));
 actionButtons[1].addEventListener('click', () => ask('until'));
 
-window.addEventListener('online', updateConnectionState);
-window.addEventListener('offline', updateConnectionState);
+window.addEventListener('online', () => {
+  originUnavailable = false;
+  updateConnectionState();
+  void checkAppServer();
+});
+window.addEventListener('offline', () => {
+  ++originCheckId;
+  originUnavailable = false;
+  updateConnectionState();
+});
+window.addEventListener('focus', () => { void checkAppServer(); });
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) void checkAppServer();
+});
 updateConnectionState();
+void checkAppServer();
 
 void locate();
 
