@@ -77,6 +77,8 @@ This is a simple product heuristic, not a validated meteorological nowcasting te
 
 The recent-check section renders up to three clickable results from `getWeatherHistory()` in `src/offline-cache.js`. An explicit `Check weather` action copies its matching time-stamped weather snapshot to `history[]` under the existing `raincheck:offline:v1` localStorage key. Entries are deduplicated by the same rounded coordinate key as forecast caching, and only the latest explicit check for a location is retained. Each entry stores the place, explicit-check time, and a **copy** of the forecast snapshot at that check, so a later silent prefetch cannot silently change history.
 
+History rows use a width-constrained two-column layout (saved result + independent, keyboard-accessible delete button). Long names and forecasts wrap within the available viewport. `removeWeatherHistoryItem()` removes a single matching location from `history[]` only and leaves saved forecast snapshots and last selected location unchanged. The delete control does not open its history entry or make an API call.
+
 Opening a history item updates the selected location and renders its stored snapshot directly; it deliberately bypasses `setLocation()`, which would normally start a background prefetch. No GPS, geocoding, or weather request is made, regardless of network connectivity. Merely opening an entry does not mutate its recency or snapshot. Offline explicit checks can refresh the history order using the matching snapshot. Storage failures are tolerated. Coverage includes `tests/history.test.js`.
 
 ## Persistent offline weather snapshots
@@ -102,6 +104,12 @@ The Vite build copies the files from `public/` directly into `dist/`. `manifest.
 ## Apache HTTPS enforcement
 
 The `public/.htaccess` file is copied to `dist/.htaccess` during the Vite build. On Apache hosting with `mod_rewrite` and permitted overrides, it redirects non-HTTPS requests to the same host/path/query over HTTPS (301). This is an Apache-level redirect, independent of the PWA service worker or JavaScript. The server needs a valid TLS certificate. Dotfiles must not be omitted during upload; see [deployment instructions](hosting-cpanel.md).
+
+## PWA update cycle
+
+The HTML and version metadata use Apache `Cache-Control: no-store`. The service worker precaches its full hashed app shell with HTTP-cache bypasses before calling `skipWaiting()` and `clients.claim()`. New worker scripts differ each build because `scripts/prepare-pwa.mjs` embeds the UTC build identity.
+
+Production `src/main.js` registers the worker with `updateViaCache: 'none'` and checks `registration.update()` on page load, focus, restored visibility, and when online resumes. The `controllerchange` listener reloads an already-controlled online page once after a new worker activates; it does not reload for the initial worker installation or when offline (reloading is deferred until reconnection). Browser localStorage weather snapshots and recent-check history are untouched. Updating a legacy installed app that predates this listener may need an initial manual page reload.
 
 ## Deployment
 
