@@ -35,11 +35,13 @@ app.innerHTML = `
     </div>
     <h1>Do I need an <em>umbrella?</em></h1>
   </div>
-  <section class="location-panel" aria-label="Location">
+  <div class="weather-workspace">
+    <section class="location-panel" aria-label="Location">
     <div class="location-line"><span class="pin">⌖</span><div><small>Location</small><strong id="place">Not selected yet</strong><small id="location-status" class="location-status" aria-live="polite">Choose a city or find your location</small></div><button id="locate" class="link-btn" type="button">Find me</button></div>
     <form id="city-form"><label for="city">Or enter a city</label><div class="city-input"><input id="city" name="city" placeholder="e.g. London" autocomplete="address-level2" required minlength="2"><button type="submit">Search</button></div><div id="suggestions" class="suggestions" role="listbox" aria-label="City suggestions" hidden></div></form>
-  </section>
-  <div class="actions"><button id="check" class="action" type="button"><span class="action-symbol" aria-hidden="true">☔</span><span>Check weather</span></button></div>
+    </section>
+    <div class="weather-workspace__result">
+      <div class="actions"><button id="check" class="action" type="button"><span class="action-symbol" aria-hidden="true">☔</span><span>Check weather</span></button></div>
   <section id="weather-results" class="weather-results" aria-live="polite">
     <article class="weather-summary neutral" id="summary-card" aria-label="Current rain and the next change">
       <div class="summary-main">
@@ -56,6 +58,8 @@ app.innerHTML = `
       <p class="summary-meta" id="summary-meta">Check weather to see the forecast.</p>
     </article>
   </section>
+    </div>
+  </div>
   <section class="history" id="recent-checks" aria-label="Recent weather checks" hidden>
     <div class="history-heading"><h2>Recent checks</h2></div>
     <div id="history-list" class="history-list"></div>
