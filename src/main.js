@@ -358,7 +358,7 @@ async function getWeather(atLocation = location) {
         raining: rainNow(data),
         observedAt: data.current?.time,
         stopForecast: rainUntil(data),
-        nextRainForecast: rainNow(data) === false ? rainStarts(data) : null
+        nextRainForecast: rainNow(data) === false ? rainStarts(data, { absoluteDate: true }) : null
       });
     }
     return data;
