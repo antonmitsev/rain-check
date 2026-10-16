@@ -7,8 +7,8 @@ A single-page application showing the selected location, two action buttons, and
 ## 2. User flow
 
 1. The user opens the page over HTTPS.
-2. The user grants geolocation permission when selecting **Find my location**.
-3. If permission is denied or geolocation is unavailable, the user can search for a city instead.
+2. On startup, the app automatically attempts geolocation. The browser may prompt the user for permission; previously granted or denied permissions follow browser settings.
+3. If permission is denied, times out, or geolocation is unavailable, the user can search for a city instead. The **Find me** button allows a manual retry.
 4. The user clicks **Is it raining?** or **When will it stop raining?**.
 5. The application fetches weather data (or uses a valid cached response) and displays a concise answer in English.
 
@@ -16,7 +16,7 @@ A single-page application showing the selected location, two action buttons, and
 
 | ID | Requirement | Acceptance criterion |
 | --- | --- | --- |
-| F01 | Geolocation | Obtain latitude and longitude after permission is granted. Reverse-geocode the coordinates to display a readable location name and an explicit confirmation. If reverse geocoding fails, display coordinates instead. |
+| F01 | Geolocation | Automatically attempt location discovery when the app starts, obtain latitude and longitude after permission is granted. Reverse-geocode the coordinates to display a readable location name and an explicit confirmation. If reverse geocoding fails, display coordinates instead. |
 | F02 | Manual city fallback | A city search works when geolocation is blocked or unavailable. After 3 typed characters, show selectable city suggestions with administrative region and country. |
 | F03 | Is it raining? | Display current estimated rainfall conditions without presenting forecast values as on-site measurements. |
 | F04 | When will it stop raining? | Estimate an approximate stop time using the hourly forecast. |
