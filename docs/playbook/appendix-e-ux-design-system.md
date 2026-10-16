@@ -92,6 +92,34 @@ header, main, section, .card, .history-list { min-width: 0; max-width: 100%; }
 
 Do not camouflage width bugs with page-wide overflow clipping. Debug the complete ancestor chain. Shorten and group taglines if a final word becomes orphaned. A too-long one-line heading must wrap at narrow widths.
 
+### Landscape composition
+
+Portrait layout is centered at a deliberately narrow width, e.g. **max-width: 580px**. A sufficiently wide landscape viewport (e.g. at least **740px**) can use a **920px maximum** shell and a two-column layout: **location/search on the left**, **primary action and current result on the right**, recent history below. Small landscape viewports remain single-column.
+
+~~~css
+.workspace, .workspace__result { min-width: 0; max-width: 100%; }
+@media (orientation: landscape) and (min-width: 740px) {
+  .shell {
+    max-width: 920px;
+    padding-inline: max(18px, env(safe-area-inset-left))
+                    max(18px, env(safe-area-inset-right));
+  }
+  .workspace {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+    gap: 20px;
+    align-items: stretch;
+  }
+  .workspace__result {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+}
+~~~
+
+Keep source order intuitive, preserve actual touch targets, and allow natural vertical scrolling on short landscape screens. This is a **composition breakpoint**, not a universal requirement to use 740/920 for all products.
+
 ## E.4 Content hierarchy
 
 | Level | Content | Treatment |
@@ -231,6 +259,7 @@ A PWA icon is a product asset, not an optional browser embellishment. If the ico
 - [ ] Main result is a single concise component with provenance.
 - [ ] Empty history and normal ONLINE banner consume no space.
 - [ ] The desktop shell is centered and bounded.
+- [ ] Wide landscape screens use side-by-side inputs and primary result with a larger but capped shell; short/narrow landscape screens do not squeeze forms.
 - [ ] iPhone-scale viewports do not overflow horizontally.
 - [ ] Long names, build numbers and forms can shrink or wrap.
 - [ ] Grouped taglines do not split awkwardly.
