@@ -11,11 +11,11 @@ No Node.js is required on the host.
    ```
 2. In **cPanel → Domains**, create a domain/subdomain such as `rain.example.com` and set its **Document Root** to e.g. `/home/USER/public_html/rain-check`. If DNS is hosted elsewhere, add an A/AAAA record pointing the name to the hosting IP. Allow DNS to propagate. Enable HTTPS via AutoSSL / SSL/TLS Status (availability depends on host).
 3. Open **File Manager**. Navigate to that exact Document Root. Upload **the contents of** `dist/` (not the folder itself): `index.html`, `assets/`, `manifest.webmanifest`, `sw.js`, `icons/`, `precache-manifest.json`, `version.json`, and the hidden `.htaccess` file.
-4. Verify `https://rain.example.com/version.json` returns JSON with the expected version and UTC build timestamp. Then open `https://rain.example.com/`. Accept browser geolocation permission or type a city. Click both buttons.
+4. Verify `https://rain.example.com/version.json` returns JSON with the expected version and UTC build timestamp. Then open `https://rain.example.com/`. Accept browser geolocation permission or type a city. Click **Check weather**.
 
 For an existing domain, you can instead upload the files into a subdirectory, e.g. `public_html/rain-check/`, and open `https://example.com/rain-check/`. Vite uses relative asset paths (`base: './'`) so this works without rewriting asset URLs.
 
-**PWA:** HTTPS is mandatory for service workers and installability (except localhost). Make sure `manifest.webmanifest`, `sw.js`, `precache-manifest.json`, the PNG icons, and every file in `assets/` are served without 404 errors. Run the full `npm run build` command (which includes PWA postbuild preparation). The service worker is registered with a relative URL and supports either a dedicated subdomain or a subdirectory. After deployment, reload online once to cache the app shell. For updates, replace the entire build, then reload while online. See [PWA guide](pwa.md).
+**PWA:** HTTPS is mandatory for service workers and installability (except localhost). Make sure `manifest.webmanifest`, `sw.js`, `precache-manifest.json`, the PNG icons, and every file in `assets/` are served without 404 errors. Run the full `npm run build` command (which includes PWA postbuild preparation). The service worker is registered with a relative URL and supports either a dedicated subdomain or a subdirectory. After deployment, reload online once to cache the app shell. For updates, upload the **complete new build**, including hidden `.htaccess`. Modern app versions check for a changed worker on startup/focus/visibility/online and automatically reload once its complete new cache activates. A legacy installed version without this handler may require one manual online reload. See [PWA guide](pwa.md).
 
 **Apache HTTPS redirect:** `public/.htaccess` is copied into `dist/.htaccess` by the Vite build and must be uploaded to the site's Document Root along with the other build files. It uses Apache `mod_rewrite` to redirect HTTP requests to the same URL over HTTPS with a permanent `301` response, preserving the hostname, path, and query string. If the site is deployed in `/rain-check/`, the redirect preserves that subdirectory. No SPA routing rewrite is needed because the app has no client-side routes. PHP and databases are unnecessary.
 
@@ -28,6 +28,22 @@ curl -I 'http://rain.example.com/rain-check/?from=test'
 ```
 
 Expected: `HTTP/1.1 301 Moved Permanently` (or `HTTP/2 301`) and a `Location: https://rain.example.com/rain-check/?from=test` header. A direct HTTPS request must **not** redirect again. During development of the rule, consider temporarily using `R=302` instead of `R=301` because browsers aggressively cache permanent redirects.
+
+## Preventing stale deployments
+
+The included `public/.htaccess` sets `Cache-Control: no-store, max-age=0` (if Apache `mod_headers` is available) on `index.html`, `sw.js`, `version.json`, `precache-manifest.json`, and `manifest.webmanifest`. The service worker also bypasses the browser HTTP cache for navigation and installing its precached resources. Content-hashed files under `assets/` remain safe to cache.
+
+Upload **all files from the same build** to the correct Document Root. For `index.html`, `sw.js`, `version.json`, and the PWA manifest, check that a direct HTTP response is fresh, for example:
+
+```sh
+curl -I 'https://rain.example.com/index.html'
+curl -I 'https://rain.example.com/sw.js'
+curl -I 'https://rain.example.com/version.json'
+```
+
+These should include `Cache-Control: no-store` when `mod_headers` and `.htaccess` overrides are enabled. Compare `version.json` to your latest local `dist/version.json`. If the CDN caches these files regardless of origin headers, invalidate its cache.
+
+Existing older PWA installations might need a **single online page reload** to load the new automatic-update listener. After that, the app updates when focused or reopened, and preserves browser-local weather snapshots/history; clearing site data is not part of normal deployment.
 
 ## Verify the deployed build
 
@@ -65,7 +81,7 @@ Important limitations:
 - **HTTP is not redirected:** confirm `.htaccess` is uploaded and visible in Document Root, Apache `mod_rewrite` is enabled, and `.htaccess` overrides are allowed.
 - **Redirect loop:** verify the origin server sees HTTPS correctly; check existing cPanel redirects and reverse-proxy/CDN TLS configuration.
 - **API failed:** verify the host/client network can reach `api.open-meteo.com` and `geocoding-api.open-meteo.com` over HTTPS. Requests run from the visitor's browser.
-- **Update:** rebuild locally and replace the old `index.html` and `assets/` with the new build.
+- **Update:** run the full `npm run build`, upload **all** `dist/` files including dotfiles, confirm fresh `version.json`, and allow the PWA worker to activate; legacy PWA pages may need one online reload.
 
 ## Privacy and cost
 
