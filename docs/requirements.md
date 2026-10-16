@@ -28,7 +28,9 @@ A single-page application showing the selected location, two action buttons, and
 | F10 | Build version endpoint | Each production build emits a public `version.json` with package version, UTC build timestamp and optional Git commit. |
 | F11 | Visible build identity | The UI header uses metadata bundled into the running JavaScript at build time, showing package version and the first seven commit characters, also offline. The online `version.json` independently reports the deployed build. |
 | F12 | Project credits | The footer links to tonymitsev.com and OpenAI as a transparent AI-assisted development acknowledgment, without suggesting official endorsement. |
-| F13 | Connectivity indication | Show a persistent connection banner and warm warning theme when offline or when the origin server is unreachable. Update automatically when connection state changes. Disable weather and city searches only when the browser reports offline. |
+| F13 | Connectivity indication | Show a persistent connection banner and warm warning theme when offline or when the origin server is unreachable. Keep weather actions responsive while offline. |
+| F14 | Persistent offline forecasts | Save the last selected location and up to eight time-stamped weather snapshots in localStorage. Weather buttons return the matching saved observation or rain-stop forecast without spinners or API requests when offline. Identify historical data clearly and show a helpful message when none exists. |
+| F15 | Compact hero heading | Render "Do I need an umbrella?" without an explicit line break and with smaller responsive typography. |
 
 ## 4. Non-functional requirements
 
@@ -61,6 +63,10 @@ A single-page application showing the selected location, two action buttons, and
 - The banner reads ONLINE while connected; changing DevTools to Offline changes it to OFFLINE and changes the theme.
 - Restoring the connection restores the normal theme and enabled weather actions.
 - If the origin server is stopped but the browser still has internet, the banner reads SERVER UNREACHABLE with the warning theme; weather actions remain enabled because third-party APIs may still be reachable.
+- After one successful online weather fetch, go offline and click both weather buttons: each displays the corresponding saved data and timestamp immediately, with no API request or loader.
+- Refresh the installed PWA offline: the previously selected location and saved forecast are available.
+- With no saved weather, offline actions show a clear empty-state message.
+- The title uses no forced line break and is sized for mobile screens.
 
 ## 7. Out of scope for v0.1
 
