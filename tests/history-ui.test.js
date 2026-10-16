@@ -70,6 +70,8 @@ function setupApp() {
   };
   const sandbox = {
     document, navigator, window:{addEventListener(){}},
+    // The UI toast auto-dismisses in browsers; timers are inert in this non-visual unit fixture.
+    setTimeout: () => 0, clearTimeout: () => {},
     fetch, __BUILD_INFO__:{version:'0.1.0',commit:null,builtAt:new Date().toISOString()},
     clearTimeout, setTimeout,
     ...bind, rainNow, rainStarts, describeRainNow, rainUntil
