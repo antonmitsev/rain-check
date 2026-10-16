@@ -22,12 +22,12 @@ const reverseCache = new Map();
 app.innerHTML = `
 <section class="shell">
   <header><div class="brand"><span class="brand-icon" aria-hidden="true">☁</span> RainCheck</div><span class="version" id="app-version" title="Application build">v0.1</span></header>
-  <div class="connection-banner" id="connection-banner" role="status" aria-live="polite">
+  <div class="connection-banner" id="connection-banner" role="status" aria-live="polite" hidden>
     <span class="connection-dot" aria-hidden="true"></span>
     <strong id="connection-label">ONLINE</strong>
     <span id="connection-description">Live weather available</span>
   </div>
-  <div class="hero"><div class="eyebrow">RAIN AT A GLANCE</div><h1>Do I need an <em>umbrella?</em></h1><p>One check. Two answers. No sign-up.</p></div>
+  <div class="hero"><div class="eyebrow">RAIN AT A GLANCE <span class="eyebrow-separator" aria-hidden="true">|</span> TWO QUESTIONS. SHORT ANSWERS. NO SIGN-UP.</div><h1>Do I need an <em>umbrella?</em></h1></div>
   <section class="location-panel" aria-label="Location">
     <div class="location-line"><span class="pin">⌖</span><div><small>Location</small><strong id="place">Not selected yet</strong><small id="location-status" class="location-status" aria-live="polite">Choose a city or find your location</small></div><button id="locate" class="link-btn" type="button">Find me</button></div>
     <form id="city-form"><label for="city">Or enter a city</label><div class="city-input"><input id="city" name="city" placeholder="e.g. London" autocomplete="address-level2" required minlength="2"><button type="submit">Search</button></div><div id="suggestions" class="suggestions" role="listbox" aria-label="City suggestions" hidden></div></form>
@@ -37,7 +37,6 @@ app.innerHTML = `
     <article class="weather-card neutral" id="current-card"><span class="weather-badge" id="current-badge">CURRENT</span><h2 id="current-title">Not checked yet</h2><p id="current-detail">Choose a location to check the weather.</p></article>
     <article class="weather-card neutral" id="forecast-card"><span class="weather-badge" id="forecast-badge">FORECAST</span><h2 id="forecast-title">Waiting for data</h2><p id="forecast-detail">The next weather change will appear here.</p></article>
   </section>
-  <section id="answer" class="answer" aria-live="polite" role="status"><span class="answer-label">STATUS</span><p>Choose a location and check the weather.</p></section>
   <section class="history" aria-label="Recent weather checks">
     <div class="history-heading"><h2>Recent checks</h2><small>Last 3 locations · saved on this device</small></div>
     <div id="history-list" class="history-list"></div>
@@ -48,7 +47,19 @@ app.innerHTML = `
   </footer>
 </section>`;
 
+// Toast notifications do not reserve space between forecast cards and recent checks.
+const toast = document.createElement('div');
+toast.id = 'toast';
+toast.className = 'toast';
+toast.setAttribute('role', 'status');
+toast.setAttribute('aria-live', 'polite');
+toast.setAttribute('aria-atomic', 'true');
+toast.hidden = true;
+document.body.append(toast);
+let toastTimer;
+
 const versionBadge = document.querySelector('#app-version');
+const connectionBanner = document.querySelector('#connection-banner');
 const connectionLabel = document.querySelector('#connection-label');
 const connectionDescription = document.querySelector('#connection-description');
 const themeMeta = document.querySelector('meta[name="theme-color"]');
@@ -69,7 +80,6 @@ const place = document.querySelector('#place');
 const status = document.querySelector('#location-status');
 const cityInput = document.querySelector('#city');
 const suggestions = document.querySelector('#suggestions');
-const answer = document.querySelector('#answer');
 const locateButton = document.querySelector('#locate');
 const cityForm = document.querySelector('#city-form');
 const actionButtons = [document.querySelector('#check')];
@@ -78,11 +88,14 @@ const forecastCard = document.querySelector('#forecast-card');
 const historyList = document.querySelector('#history-list');
 
 function render(message, category = '') {
-  answer.className = `answer ${category}`;
-  answer.innerHTML = '<span class="answer-label">ANSWER</span>';
-  const p = document.createElement('p');
-  p.textContent = message;
-  answer.append(p);
+  clearTimeout(toastTimer);
+  toast.className = `toast ${category ? `toast--${category}` : ''}`;
+  toast.setAttribute('role', category === 'error' ? 'alert' : 'status');
+  toast.textContent = message;
+  toast.hidden = false;
+  // Loading is also temporary, so a failed request cannot leave a permanent overlay.
+  toastTimer = setTimeout(() => { toast.hidden = true; },
+    category === 'error' || category === 'offline' ? 6500 : category === 'loading' ? 6000 : 3800);
 }
 function updateCard(card, badgeId, titleId, detailId, tone, badge, title, detail) {
   card.className = `weather-card ${tone}`;
@@ -213,6 +226,7 @@ function updateConnectionState() {
   const warning = offline || originUnavailable;
   const hadWarning = document.body.classList.contains('offline-mode');
   document.body.classList.toggle('offline-mode', warning);
+  connectionBanner.hidden = !warning;
   connectionLabel.textContent = offline ? 'OFFLINE' : originUnavailable ? 'SERVER UNREACHABLE' : 'ONLINE';
   connectionDescription.textContent = offline
     ? 'Showing saved weather; no live requests'
@@ -234,7 +248,7 @@ function updateConnectionState() {
     if (originUnavailable && !hadWarning && !busy) {
       render('The app server is unreachable. Cached UI is available; live weather may still work.', 'offline');
     } else if (!warning && hadWarning && !busy) {
-      render('Connection restored. Choose a question for fresh weather data.', 'success');
+      render('Connection restored. Press Check weather for a fresh forecast.', 'success');
     }
   }
 }
