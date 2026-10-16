@@ -1,9 +1,9 @@
 import './style.css';
+import { rainNow, rainStarts, describeRainNow, rainUntil } from './weather.js';
 import { rememberLocation, getLastLocation, saveWeatherSnapshot, getWeatherSnapshot, formatCachedWeather } from './offline-cache.js';
 
 const app = document.querySelector('#app');
 const CACHE_TTL = 10 * 60 * 1000;
-const STOP_THRESHOLD = 0.1;
 let location = null;
 let busy = false;
 let weatherCache = new Map();
@@ -31,7 +31,7 @@ app.innerHTML = `
     <div class="location-line"><span class="pin">⌖</span><div><small>Location</small><strong id="place">Not selected yet</strong><small id="location-status" class="location-status" aria-live="polite">Choose a city or find your location</small></div><button id="locate" class="link-btn" type="button">Find me</button></div>
     <form id="city-form"><label for="city">Or enter a city</label><div class="city-input"><input id="city" name="city" placeholder="e.g. London" autocomplete="address-level2" required minlength="2"><button type="submit">Search</button></div><div id="suggestions" class="suggestions" role="listbox" aria-label="City suggestions" hidden></div></form>
   </section>
-  <div class="actions"><button id="now" class="action" type="button"><span class="action-symbol">☔</span><span>Is it raining?</span><small>Right now</small></button><button id="until" class="action" type="button"><span class="action-symbol">◷</span><span>When will it stop?</span><small>Next few hours</small></button></div>
+  <div class="actions"><button id="now" class="action" type="button"><span class="action-symbol">☔</span><span>Is it raining?</span><small>Now & next rain</small></button><button id="until" class="action" type="button"><span class="action-symbol">◷</span><span>When will it stop?</span><small>Next few hours</small></button></div>
   <section id="answer" class="answer" aria-live="polite" role="status"><span class="answer-label">ANSWER</span><p>Choose a location and click a button.</p></section>
   <footer>
     <div>Weather data: <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a> · Location names: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap contributors</a> · Local conditions may differ.</div>
@@ -342,7 +342,7 @@ async function getWeather(atLocation = location) {
       latitude: String(atLocation.latitude),
       longitude: String(atLocation.longitude),
       current: 'rain,showers,precipitation',
-      hourly: 'precipitation,precipitation_probability',
+      hourly: 'rain,showers,precipitation,precipitation_probability',
       forecast_days: '2',
       timezone: 'auto'
     }).toString();
@@ -357,7 +357,8 @@ async function getWeather(atLocation = location) {
         savedAt: timestamp,
         raining: rainNow(data),
         observedAt: data.current?.time,
-        stopForecast: rainUntil(data)
+        stopForecast: rainUntil(data),
+        nextRainForecast: rainNow(data) === false ? rainStarts(data) : null
       });
     }
     return data;
@@ -368,32 +369,6 @@ async function getWeather(atLocation = location) {
   } finally {
     if (inflightWeather.get(key)?.controller === controller) inflightWeather.delete(key);
   }
-}
-function rainNow(data) {
-  const current = data.current;
-  if (!current || !Number.isFinite(current.rain) || !Number.isFinite(current.showers))
-    return null;
-  return current.rain > 0 || current.showers > 0;
-}
-function rainUntil(data) {
-  const raining = rainNow(data);
-  if (raining === null) return 'There is not enough current rainfall data.';
-  if (!raining) return 'According to current weather data, it is not raining in this area.';
-  const times = data.hourly?.time;
-  const amounts = data.hourly?.precipitation;
-  if (!Array.isArray(times) || !Array.isArray(amounts)) return 'There is not enough forecast data to estimate when rain will stop.';
-  // Open-Meteo hourly timestamps are local to the requested timezone; current.time has the same convention.
-  const currentHour = data.current?.time?.slice(0, 13);
-  const start = times.findIndex(t => t.slice(0, 13) > currentHour);
-  if (start < 0) return 'There is not enough forecast data to estimate when rain will stop.';
-  for (let i = start; i < amounts.length - 1; i++) {
-    if (Number.isFinite(amounts[i]) && Number.isFinite(amounts[i + 1])
-        && amounts[i] < STOP_THRESHOLD && amounts[i + 1] < STOP_THRESHOLD) {
-      const hour = times[i].slice(11, 16);
-      return `Rain is expected to stop around ${hour} (approximate hourly forecast).`;
-    }
-  }
-  return 'The near-term forecast does not show a clear end to the rain.';
 }
 async function ask(kind) {
   if (!navigator.onLine) {
@@ -410,12 +385,7 @@ async function ask(kind) {
       showSavedWeather(kind);
       return;
     }
-    const raining = rainNow(data);
-    const message = kind === 'now'
-      ? raining === null ? 'There is not enough current rainfall data.'
-        : raining ? 'According to current weather data, it is raining in this area.'
-        : 'According to current weather data, it is not raining in this area.'
-      : rainUntil(data);
+    const message = kind === 'now' ? describeRainNow(data) : rainUntil(data);
     render(message, 'success');
   } catch (error) {
     if (!navigator.onLine) showSavedWeather(kind);
