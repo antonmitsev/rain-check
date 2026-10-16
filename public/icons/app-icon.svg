@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">RainCheck — cloud, checkmark and rain</title>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#173d70"/>
+      <stop offset=".6" stop-color="#0d294c"/>
+      <stop offset="1" stop-color="#07172b"/>
+    </linearGradient>
+    <linearGradient id="cloud" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fafdff"/>
+      <stop offset="1" stop-color="#acd8ff"/>
+    </linearGradient>
+    <linearGradient id="rain" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#80d7ff"/>
+      <stop offset="1" stop-color="#3695f2"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#background)"/>
+  <rect x="10" y="10" width="492" height="492" rx="103" fill="none" stroke="#68b6fc" stroke-opacity=".16" stroke-width="3"/>
+  <path d="M126 325c-48 0-87-37-87-83 0-43 34-78 77-82 18-70 77-118 149-118 72 0 130 44 149 108 48 4 83 41 83 86 0 51-41 89-92 89H126Z" fill="url(#cloud)"/>
+  <path d="M192 216l48 48 86-94" fill="none" stroke="#1472bf" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M174 348c-13 21-26 39-26 55a27 27 0 0 0 54 0c0-16-15-34-28-55Z" fill="url(#rain)"/>
+  <path d="M321 348c-13 21-26 39-26 55a27 27 0 0 0 54 0c0-16-15-34-28-55Z" fill="url(#rain)"/>
+</svg>
