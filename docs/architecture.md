@@ -20,7 +20,7 @@ No backend, React runtime, database, or OpenAI API key is required.
 Forecast request using sample coordinates for Sofia, Bulgaria:
 
 ```http
-GET https://api.open-meteo.com/v1/forecast?latitude=42.6977&longitude=23.3219&current=rain,showers,precipitation&hourly=precipitation,precipitation_probability&forecast_days=2&timezone=auto
+GET https://api.open-meteo.com/v1/forecast?latitude=42.6977&longitude=23.3219&current=rain,showers,precipitation&hourly=rain,showers,precipitation,precipitation_probability&forecast_days=2&timezone=auto
 ```
 
 City search:
@@ -37,11 +37,17 @@ Manual city searches use Open-Meteo Geocoding API. Suggestions start after 3 cha
 
 ## Answer algorithm
 
+The pure functions in `src/weather.js` implement forecast interpretation and can be tested without the UI using `tests/weather.test.js` (`npm test`).
+
 ### Is it raining?
 
 - When `current.rain > 0 || current.showers > 0`, report estimated rainfall in the area.
-- When both values are zero, report no estimated rainfall.
-- When current weather data is missing, report uncertainty rather than guessing.
+- When both values are zero, report that it is not currently raining **and** search forward from the next hourly forecast interval for the first predicted rain/shower total of at least **0.1 mm**.
+- Prefer hourly `rain + showers` (liquid precipitation) over total `precipitation`, since total precipitation can also include snow. The latter is only a compatibility fallback for older API responses.
+- Display an **approximate** next start time using the forecast location's local timestamps: `today`, `tomorrow`, or an explicit date.
+- If no such interval appears, say no rain is forecast **within the available hourly horizon**, not that rain will never occur.
+- When hourly information is missing, report the uncertainty instead of inventing an hour.
+- When current data is missing, do not infer current conditions from the future forecast.
 
 ### When will it stop raining?
 
@@ -63,7 +69,7 @@ This is a simple product heuristic, not a validated meteorological nowcasting te
 
 ## Persistent offline weather snapshots
 
-The `src/offline-cache.js` module stores the most recently selected place and up to eight compact, time-stamped weather snapshots in browser localStorage. Coordinates are rounded to three decimals before persistence. Each snapshot contains the time downloaded, the provider's current weather timestamp (when available), the observed rain/no-rain state, and the rain-stop forecast as computed at fetch time. A new location triggers silent weather prefetch; later button presses reuse the existing 10-minute in-memory cache.
+The `src/offline-cache.js` module stores the most recently selected place and up to eight compact, time-stamped weather snapshots in browser localStorage. Coordinates are rounded to three decimals before persistence. Each snapshot contains the time downloaded, the provider's current weather timestamp (when available), the observed rain/no-rain state, the rain-stop forecast, and (when currently dry) the next expected rain onset, as computed at fetch time. Offline rain onset strings use an **absolute calendar date** instead of relative `today` or `tomorrow` wording. A new location triggers silent weather prefetch; later button presses reuse the existing 10-minute in-memory cache.
 
 When `navigator.onLine` is false, the UI keeps the weather buttons clickable and immediately formats the matching saved snapshot. No loader, API request, GPS lookup, or suggestion search is started. Any inflight weather and city requests are aborted when the offline event occurs. When the app starts offline, it restores the last saved location and presents the saved conditions, if available. A missing snapshot produces an informative empty state; an online provider failure can also fall back to saved data, clearly marked historical. localStorage access failures are tolerated without breaking the app.
 
