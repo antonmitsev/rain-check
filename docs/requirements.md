@@ -26,7 +26,9 @@ A single-page application showing the selected location, two action buttons, and
 | F08 | PWA installation | Provide a valid web manifest, 192px and 512px icons, standalone display mode, and a registered service worker. |
 | F09 | Offline app shell | Service worker installation precaches HTML and all production JS/CSS assets so the UI can launch offline without a blank screen. Live weather and geocoding still require connectivity. |
 | F10 | Build version endpoint | Each production build emits a public `version.json` with package version, UTC build timestamp and optional Git commit. |
-| F12 | Project credits | The footer links to tonymitsev.com and OpenAI as a transparent AI-assisted development acknowledgment, without suggesting official endorsement. |\n| F11 | Visible build identity | The UI header uses metadata bundled into the running JavaScript at build time, showing package version and the first seven commit characters, also offline. The online `version.json` independently reports the deployed build. |
+| F11 | Visible build identity | The UI header uses metadata bundled into the running JavaScript at build time, showing package version and the first seven commit characters, also offline. The online `version.json` independently reports the deployed build. |
+| F12 | Project credits | The footer links to tonymitsev.com and OpenAI as a transparent AI-assisted development acknowledgment, without suggesting official endorsement. |
+| F13 | Connectivity indication | Show a persistent connection banner and warm warning theme when offline or when the origin server is unreachable. Update automatically when connection state changes. Disable weather and city searches only when the browser reports offline. |
 
 ## 4. Non-functional requirements
 
@@ -56,6 +58,9 @@ A single-page application showing the selected location, two action buttons, and
 - The production application runs as a static website without a backend.
 - After one successful online visit, the application shell is available offline.
 - PWA installation works on supported browsers under HTTPS.
+- The banner reads ONLINE while connected; changing DevTools to Offline changes it to OFFLINE and changes the theme.
+- Restoring the connection restores the normal theme and enabled weather actions.
+- If the origin server is stopped but the browser still has internet, the banner reads SERVER UNREACHABLE with the warning theme; weather actions remain enabled because third-party APIs may still be reachable.
 
 ## 7. Out of scope for v0.1
 
