@@ -279,9 +279,12 @@ async function ask(kind) {
   finally { setBusy(false); }
 }
 locateButton.addEventListener('click', locate);
+// Start location discovery when the app opens; the manual city search remains available after failure.
 cityForm.addEventListener('submit', chooseCity);
 actionButtons[0].addEventListener('click', () => ask('now'));
 actionButtons[1].addEventListener('click', () => ask('until'));
+
+void locate();
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
