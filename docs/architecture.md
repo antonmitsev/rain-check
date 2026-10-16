@@ -4,8 +4,8 @@
 
 ```text
 Browser (Vite + vanilla JavaScript)
- ├── Geolocation API → coordinates
- ├── Manual city search → Open-Meteo Geocoding API → coordinates
+ ├── Geolocation API → coordinates → OSM Nominatim reverse lookup (once per explicit selection)
+ ├── Manual city input → debounced Open-Meteo Geocoding suggestions → selected coordinates
  └── Open-Meteo Forecast API → in-memory cache (10 minutes)
                                  ↓
                          Answer algorithm
@@ -28,6 +28,12 @@ City search:
 ```http
 GET https://geocoding-api.open-meteo.com/v1/search?name=Sofia&count=1&language=en&format=json
 ```
+
+## Location resolution
+
+The GPS button requests permission, reverse-geocodes the returned coordinates through OpenStreetMap Nominatim, then shows the resolved city/region/country with an explicit confirmation. If name resolution fails, it shows rounded coordinates rather than claiming the location was not found. Reverse lookups are cached by rounded coordinates. Nominatim is used only after an explicit GPS click, never for autocomplete. The application includes OpenStreetMap attribution and must comply with the [Nominatim usage policy](https://operations.osmfoundation.org/policies/nominatim/) (including its maximum request rate). For higher traffic, replace the public reverse service with a provider suitable for production scale.
+
+Manual city searches use Open-Meteo Geocoding API. Suggestions start after 3 characters with a 350 ms debounce, abort stale requests, and present up to 7 locations. City name, administrative area and country distinguish ambiguous matches.
 
 ## Answer algorithm
 
