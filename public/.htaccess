@@ -5,3 +5,11 @@
     RewriteCond %{HTTPS} !=on
     RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L,NE]
 </IfModule>
+
+# HTML and PWA update metadata must be revalidated on every deployment.
+# Content-hashed assets in /assets/ may retain their regular browser cache.
+<IfModule mod_headers.c>
+    <FilesMatch "^(index\.html|sw\.js|version\.json|precache-manifest\.json|manifest\.webmanifest)$">
+        Header always set Cache-Control "no-store, max-age=0"
+    </FilesMatch>
+</IfModule>
