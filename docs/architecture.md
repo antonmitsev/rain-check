@@ -1,60 +1,60 @@
-# RainCheck — архитектура v0.1
+# RainCheck — Architecture v0.1
 
-## Основен поток
+## Data flow
 
 ```text
 Browser (Vite + vanilla JavaScript)
- ├── Geolocation API → координати
- ├── Ръчен град → Open-Meteo Geocoding API → координати
- └── Open-Meteo Forecast API → локален кеш (10 минути)
+ ├── Geolocation API → coordinates
+ ├── Manual city search → Open-Meteo Geocoding API → coordinates
+ └── Open-Meteo Forecast API → in-memory cache (10 minutes)
                                  ↓
-                     Алгоритъм на отговора
+                         Answer algorithm
                                  ↓
-                     Кратък текст на български
+                       Concise English text
 ```
 
-Няма собствен backend, React runtime, база данни или OpenAI API ключ.
+No backend, React runtime, database, or OpenAI API key is required.
 
-## API
+## API requests
 
-Пример с координати за София:
+Forecast request using sample coordinates for Sofia, Bulgaria:
 
 ```http
 GET https://api.open-meteo.com/v1/forecast?latitude=42.6977&longitude=23.3219&current=rain,showers,precipitation&hourly=precipitation,precipitation_probability&forecast_days=2&timezone=auto
 ```
 
-За град:
+City search:
 
 ```http
-GET https://geocoding-api.open-meteo.com/v1/search?name=Sofia&count=1&language=bg&format=json
+GET https://geocoding-api.open-meteo.com/v1/search?name=Sofia&count=1&language=en&format=json
 ```
 
-## Алгоритъм
+## Answer algorithm
 
-### Вали ли?
+### Is it raining?
 
-- `current.rain > 0 || current.showers > 0`: в района вали според текущите данни.
-- Ако стойностите са нулеви: не вали според данните.
-- Ако данните липсват: показва се неопределен отговор.
+- When `current.rain > 0 || current.showers > 0`, report estimated rainfall in the area.
+- When both values are zero, report no estimated rainfall.
+- When current weather data is missing, report uncertainty rather than guessing.
 
-### Докога ще вали?
+### When will it stop raining?
 
-- При липса на текущ валеж това се съобщава директно.
-- В противен случай се започва от следващия почасов интервал.
-- Първите два последователни часа с `hourly.precipitation < 0.1` се приемат за прогнозно спиране.
-- Показва се началото на този интервал като **ориентировъчен** час.
-- Ако няма такъв интервал: няма надежден час в хоризонта на прогнозата.
+- If it is not currently raining, state that directly.
+- Otherwise inspect hourly forecasts starting after the current hourly interval.
+- Find the first two consecutive hours with `hourly.precipitation < 0.1`.
+- Display the start of that interval as an **approximate** stop time.
+- If no interval qualifies, explain that the forecast does not provide a reliable stop time.
 
-Това е опростена продуктова евристика, не гарантирана метеорологична оценка. Почасовата прогноза не определя точната минута на спиране. Текущите данни и прогнозата могат да се различават от локалните условия.
+This is a simple product heuristic, not a validated meteorological nowcasting technique. Hourly forecasts do not provide the exact minute when rainfall stops, and local conditions may differ from forecasts.
 
-## Кеш, privacy, разходи
+## Caching, privacy and cost
 
-- In-memory cache: 10 минути, по закръглени координати.
-- Няма сървърно съхранение на потребителска локация.
-- HTTPS е необходимо за геолокацията (с изключение на localhost).
-- Open-Meteo има безплатен некомерсиален достъп при съответните условия.
-- ChatGPT Free не е програмируем API; за тези два отговора не е необходим LLM.
+- In-memory weather cache: 10 minutes, keyed by rounded coordinates.
+- No server-side storage of the user's location.
+- Browser geolocation requires HTTPS (except localhost).
+- Open-Meteo offers free non-commercial access under its applicable terms.
+- ChatGPT Free is not a programmable API. This MVP does not require an LLM.
 
-## Деплой
+## Deployment
 
-Виж [hosting-cpanel.md](hosting-cpanel.md).
+See [Apache/cPanel deployment](hosting-cpanel.md).
