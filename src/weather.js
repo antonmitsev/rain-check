@@ -9,9 +9,23 @@ export function rainNow(data) {
 
 function forecastHours(data) {
   const times = data?.hourly?.time;
-  // Prefer rain specifically: precipitation also includes snow.
+  // Total precipitation includes snow; prefer rain and showers when available.
   const rain = data?.hourly?.rain;
-  const amounts = Array.isArray(rain) ? rain : data?.hourly?.precipitation;
+  const showers = data?.hourly?.showers;
+  let amounts;
+  if (Array.isArray(rain) || Array.isArray(showers)) {
+    const count = Math.max(rain?.length ?? 0, showers?.length ?? 0);
+    amounts = Array.from({ length: count }, (_, i) => {
+      const r = rain?.[i];
+      const sh = showers?.[i];
+      return Number.isFinite(r) || Number.isFinite(sh)
+        ? (Number.isFinite(r) ? r : 0) + (Number.isFinite(sh) ? sh : 0)
+        : null;
+    });
+  } else {
+    // Compatibility with older responses that contain precipitation only.
+    amounts = data?.hourly?.precipitation;
+  }
   const currentHour = data?.current?.time?.slice(0, 13);
   if (!Array.isArray(times) || !Array.isArray(amounts)
       || typeof currentHour !== 'string' || currentHour.length !== 13) return null;
