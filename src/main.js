@@ -646,10 +646,52 @@ if (navigator.onLine) void locate();
 
 if ('serviceWorker' in navigator) {
   if (import.meta.env.PROD) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js').catch(error => {
+    // A newly activated worker has already precached the complete new app.
+    // Reload only previously controlled tabs, not the first install.
+    const hadControllerOnLoad = Boolean(navigator.serviceWorker.controller);
+    let reloadStarted = false;
+    let reloadDeferred = false;
+
+    function reloadUpdatedApp() {
+      if (!hadControllerOnLoad || reloadStarted) return;
+      if (!navigator.onLine) {
+        reloadDeferred = true;
+        return;
+      }
+      reloadStarted = true;
+      window.location.reload();
+    }
+
+    navigator.serviceWorker.addEventListener('controllerchange', reloadUpdatedApp);
+
+    async function checkPwaUpdate() {
+      if (!navigator.onLine) return;
+      if (reloadDeferred) {
+        reloadUpdatedApp();
+        return;
+      }
+      try {
+        const registration = await navigator.serviceWorker.getRegistration('./');
+        if (registration) await registration.update();
+      } catch (error) {
+        console.warn('Could not check for a PWA update:', error);
+      }
+    }
+
+    window.addEventListener('load', async () => {
+      try {
+        const registration = await navigator.serviceWorker.register('./sw.js', {
+          updateViaCache: 'none'
+        });
+        await registration.update();
+      } catch (error) {
         console.warn('Service worker registration failed:', error);
-      });
+      }
+    });
+    window.addEventListener('focus', () => { void checkPwaUpdate(); });
+    window.addEventListener('online', () => { void checkPwaUpdate(); });
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) void checkPwaUpdate();
     });
   } else {
     // Vite dev modules are not an offline build. Remove stale workers on this origin.
