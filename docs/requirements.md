@@ -2,15 +2,15 @@
 
 ## 1. Scope
 
-A single-page application showing the selected location, two action buttons, and a concise weather response. The goal is to answer nearby rainfall questions clearly and at minimal cost.
+A single-page application showing the selected location, one weather check button, two weather status cards, and a concise weather response. The goal is to answer nearby rainfall questions clearly and at minimal cost.
 
 ## 2. User flow
 
 1. The user opens the page over HTTPS.
 2. On startup, the app automatically attempts geolocation. The browser may prompt the user for permission; previously granted or denied permissions follow browser settings.
 3. If permission is denied, times out, or geolocation is unavailable, the user can search for a city instead. The **Find me** button allows a manual retry.
-4. The user clicks **Is it raining?** or **When will it stop raining?**.
-5. The application fetches weather data (or uses a valid cached response) and displays a concise answer in English.
+4. The user clicks **Check weather** once.
+5. The application fetches weather data (or uses a saved offline snapshot) and updates separate current-condition and next-change cards.
 
 ## 3. Functional requirements
 
@@ -18,8 +18,8 @@ A single-page application showing the selected location, two action buttons, and
 | --- | --- | --- |
 | F01 | Geolocation | Automatically attempt location discovery when the app starts, obtain latitude and longitude after permission is granted. Reverse-geocode the coordinates to display a readable location name and an explicit confirmation. If reverse geocoding fails, display coordinates instead. |
 | F02 | Manual city fallback | A city search works when geolocation is blocked or unavailable. After 3 typed characters, show selectable city suggestions with administrative region and country. |
-| F03 | Is it raining? | If currently raining, report it. If not, find the first future hourly rain/showers amount of at least 0.1 mm and show its approximate time and day. State clearly when no rain is forecast or hourly data is unavailable. Never present a forecast as an on-site observation. |
-| F04 | When will it stop raining? | Estimate an approximate stop time using the hourly forecast. |
+| F03 | Current rainfall and onset | | If currently raining, report it. If not, find the first future hourly rain/showers amount of at least 0.1 mm and show its approximate time and day. State clearly when no rain is forecast or hourly data is unavailable. Never present a forecast as an on-site observation. |
+| F04 | Rain-stop estimate | | Estimate an approximate stop time using the hourly forecast. |
 | F05 | English responses | Responses are brief and do not claim exact stop times. |
 | F06 | Weather cache | Cache responses by approximate coordinates for up to 10 minutes. |
 | F07 | Error handling | Explain network, geolocation, and unavailable-data failures. |
@@ -30,7 +30,7 @@ A single-page application showing the selected location, two action buttons, and
 | F12 | Project credits | The footer links to tonymitsev.com and OpenAI as a transparent AI-assisted development acknowledgment, without suggesting official endorsement. |
 | F13 | Connectivity indication | Show a persistent connection banner and warm warning theme when offline or when the origin server is unreachable. Keep weather actions responsive while offline. |
 | F14 | Persistent offline forecasts | Save the last selected location and up to eight time-stamped weather snapshots in localStorage. Persist the rain-stop forecast and the next expected rain onset for dry conditions. Offline answers include historical timestamps and use an explicit date for future rain estimates, without spinners or API requests. |
-| F15 | Compact hero heading | Render "Do I need an umbrella?" without an explicit line break and with smaller responsive typography. |
+| F17 | Unified results UI | Replace two question buttons with one **Check weather** button. Display a current status card and a next-change card below. Raining/Wet uses blue backgrounds and matching badges; Dry uses yellow. Next-change card uses the color of the expected future state. Cards work with offline cached observations. |\n| F15 | Compact hero heading | Render "Do I need an umbrella?" without an explicit line break and with smaller responsive typography. |
 | F16 | Enforce HTTPS on Apache | Include `public/.htaccess` in the production build to redirect HTTP requests to HTTPS with HTTP 301, preserving the host, path, and query string. Require an available SSL/TLS certificate. |
 
 ## 4. Non-functional requirements
@@ -52,7 +52,7 @@ A single-page application showing the selected location, two action buttons, and
 
 ## 6. Acceptance criteria
 
-- Both action buttons work independently.
+- One Check weather button updates both status cards together.
 - A successful GPS lookup visibly confirms the resolved city/region/country or falls back to coordinates.
 - City suggestions are debounced and selectable by mouse or keyboard.
 - Denied geolocation permission is handled explicitly.
@@ -65,7 +65,7 @@ A single-page application showing the selected location, two action buttons, and
 - The banner reads ONLINE while connected; changing DevTools to Offline changes it to OFFLINE and changes the theme.
 - Restoring the connection restores the normal theme and enabled weather actions.
 - If the origin server is stopped but the browser still has internet, the banner reads SERVER UNREACHABLE with the warning theme; weather actions remain enabled because third-party APIs may still be reachable.
-- After one successful online weather fetch, go offline and click both weather buttons: each displays the corresponding saved data and timestamp immediately, with no API request or loader.
+- After one successful online weather fetch, go offline and click Check weather: both cards show saved states and timestamps immediately, with no API request or loader.
 - Refresh the installed PWA offline: the previously selected location and saved forecast are available.
 - With no saved weather, offline actions show a clear empty-state message.
 - The title uses no forced line break and is sized for mobile screens.
