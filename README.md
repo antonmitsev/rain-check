@@ -61,6 +61,10 @@ Vite + vanilla JavaScript + CSS. There is no React runtime; this keeps the app s
 
 Current conditions describe an estimated area, not a physical sensor at the exact user location. The precipitation stop time is **approximate** and based on an hourly forecast, not radar nowcasting. The browser sends coordinates to Open-Meteo; this app has no application server.
 
+## Attribution
+
+The application footer links to [tonymitsev.com](https://tonymitsev.com/) as its creator and credits AI-assisted development with [OpenAI](https://openai.com/). This is a development acknowledgment, not an endorsement or official partnership. Weather and map-data attribution remain separate.
+
 ## Contribution rule
 
 Every feature change must update the relevant English documentation in the same change (README, requirements, architecture, deployment notes and/or PWA guide). Keep code comments and UI copy in English.
