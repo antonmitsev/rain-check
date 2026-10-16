@@ -16,8 +16,8 @@ A single-page application showing the selected location, two action buttons, and
 
 | ID | Requirement | Acceptance criterion |
 | --- | --- | --- |
-| F01 | Geolocation | Obtain latitude and longitude after permission is granted. |
-| F02 | Manual city fallback | A city search works when geolocation is blocked or unavailable. |
+| F01 | Geolocation | Obtain latitude and longitude after permission is granted. Reverse-geocode the coordinates to display a readable location name and an explicit confirmation. If reverse geocoding fails, display coordinates instead. |
+| F02 | Manual city fallback | A city search works when geolocation is blocked or unavailable. After 3 typed characters, show selectable city suggestions with administrative region and country. |
 | F03 | Is it raining? | Display current estimated rainfall conditions without presenting forecast values as on-site measurements. |
 | F04 | When will it stop raining? | Estimate an approximate stop time using the hourly forecast. |
 | F05 | English responses | Responses are brief and do not claim exact stop times. |
@@ -43,7 +43,7 @@ A single-page application showing the selected location, two action buttons, and
 
 ## 6. Acceptance criteria
 
-- Both action buttons work independently.
+- Both action buttons work independently.\n- A successful GPS lookup visibly confirms the resolved city/region/country or falls back to coordinates.\n- City suggestions are debounced and selectable by mouse or keyboard.
 - Denied geolocation permission is handled explicitly.
 - No invented or falsely precise stop times.
 - Repeated requests within 10 minutes reuse cached data.
