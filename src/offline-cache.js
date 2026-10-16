@@ -158,3 +158,18 @@ export function recordWeatherCheck(location, snapshot, storage, checkedAt = Date
   store.history = history.slice(0, MAX_HISTORY);
   return writeStore(store, storage);
 }
+
+/**
+ * Remove one recent check without touching weather snapshots or the saved location.
+ * Returns false when the entry was absent or browser storage rejected the update.
+ */
+export function removeWeatherHistoryItem(location, storage) {
+  const key = locationKey(location);
+  if (!key) return false;
+  const history = getWeatherHistory(storage);
+  const kept = history.filter(entry => locationKey(entry.location) !== key);
+  if (kept.length === history.length) return false;
+  const store = readStore(storage);
+  store.history = kept;
+  return writeStore(store, storage);
+}
