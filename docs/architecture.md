@@ -71,6 +71,12 @@ This is a simple product heuristic, not a validated meteorological nowcasting te
 - Open-Meteo offers free non-commercial access under its applicable terms.
 - ChatGPT Free is not a programmable API. This MVP does not require an LLM.
 
+## Recent weather check history
+
+The recent-check section renders up to three clickable results from `getWeatherHistory()` in `src/offline-cache.js`. An explicit `Check weather` action copies its matching time-stamped weather snapshot to `history[]` under the existing `raincheck:offline:v1` localStorage key. Entries are deduplicated by the same rounded coordinate key as forecast caching, and only the latest explicit check for a location is retained. Each entry stores the place, explicit-check time, and a **copy** of the forecast snapshot at that check, so a later silent prefetch cannot silently change history.
+
+Opening a history item updates the selected location and renders its stored snapshot directly; it deliberately bypasses `setLocation()`, which would normally start a background prefetch. No GPS, geocoding, or weather request is made, regardless of network connectivity. Merely opening an entry does not mutate its recency or snapshot. Offline explicit checks can refresh the history order using the matching snapshot. Storage failures are tolerated. Coverage includes `tests/history.test.js`.
+
 ## Persistent offline weather snapshots
 
 The `src/offline-cache.js` module stores the most recently selected place and up to eight compact, time-stamped weather snapshots in browser localStorage. Coordinates are rounded to three decimals before persistence. Each snapshot contains the time downloaded, the provider's current weather timestamp (when available), the observed rain/no-rain state, the rain-stop forecast, and (when currently dry) the next expected rain onset, as computed at fetch time. Offline rain onset strings use an **absolute calendar date** instead of relative `today` or `tomorrow` wording. A new location triggers silent weather prefetch; later button presses reuse the existing 10-minute in-memory cache.
