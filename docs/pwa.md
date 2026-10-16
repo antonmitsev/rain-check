@@ -37,9 +37,9 @@ The browser's `online` and `offline` events update the state immediately. The ap
 
 During installation, the service worker reads `precache-manifest.json` and caches HTML, icons, the manifest, and **all hashed production JavaScript/CSS assets** before activating. Once installation has finished and the page has been reloaded online, the PWA can launch offline without missing scripts.
 
-**Offline data is historical.** After an online weather fetch, the app saves a time-stamped observation and the computed rain-stop forecast in browser localStorage, along with the last selected location. Offline actions read these snapshots immediately without loaders or network calls. The display identifies the time of the observation (when provided), the time the snapshot was saved, and that it is **not live**. A previously viewed place can be restored when launching the PWA offline. If no snapshot exists, a clear empty-state message is shown.
+**Offline data is historical.** After an online weather fetch, the app saves a time-stamped observation, the computed rain-stop forecast, and (when dry) the next expected rain onset in browser localStorage, along with the last selected location. Offline actions read these snapshots immediately without loaders or network calls. The display identifies the time of the observation (when provided), the time the snapshot was saved, and that it is **not live**. A previously viewed place can be restored when launching the PWA offline. If no snapshot exists, a clear empty-state message is shown.
 
-Live rain observations and fresh forecasts still need connectivity. Offline city search and geolocation lookup do not start new requests. Cached weather is never automatically presented as current conditions. External Google Fonts may be unavailable offline; system font fallbacks are provided.
+Live rain observations and fresh forecasts still need connectivity. Offline city search and geolocation lookup do not start new requests. Cached weather is never automatically presented as current conditions. Saved predicted rain start times include an absolute calendar date so they remain meaningful on later offline days. Snapshots saved by older versions remain readable, but may lack a next-rain estimate. External Google Fonts may be unavailable offline; system font fallbacks are provided.
 
 The service worker only handles same-origin GET requests; it deliberately does not intercept calls to weather or geocoding providers. It does not cache third-party API responses via the service worker. The application separately persists a limited localStorage snapshot (up to eight locations, coordinates rounded to three decimals), which can be removed using the browser's Clear Site Data option.
 
@@ -68,6 +68,7 @@ After deployment, revisit/reload the page online to acquire updated assets. Brow
 - [ ] Do not use `npm run dev` as an offline test; Vite development modules need a running server.
 - [ ] With DevTools → Network → Offline: banner says OFFLINE, amber theme appears, and weather buttons stay enabled.
 - [ ] First fetch a forecast online, then go offline and click both buttons. Cached values and their timestamps appear immediately, without a loading state or API traffic.
+- [ ] If the saved snapshot reports dry weather, the offline **Is it raining?** answer includes the saved next-rain prediction with an explicit calendar date (when forecast data was available).
 - [ ] Close and reopen the PWA offline: saved location and weather are restored.
 - [ ] Clear site data, reload offline and click a weather button: the empty-state message appears instead of a spinner.
 - [ ] Run `npm test` to verify offline cache storage, retrieval, limits, and fallback formatting.
