@@ -23,6 +23,16 @@ Files under `public/` are copied to `dist/` by Vite. `npm run build` runs `vite 
 
 Install prompts are browser-dependent. RainCheck does not display a custom installation prompt.
 
+## Connection indicator and theme
+
+RainCheck always shows a connection banner below the header:
+
+- **ONLINE** — browser connectivity is reported and the origin check has not failed; the standard blue theme is used.
+- **OFFLINE** — `navigator.onLine` reports offline; a warm amber theme and explicit offline message appear. Weather and city search actions are disabled until reconnecting.
+- **SERVER UNREACHABLE** — the browser may still have internet but a network-only request to this app's `version.json` fails (for example, after stopping `npm run preview`). The warm warning theme appears. Live weather actions remain enabled because third-party APIs may still work.
+
+The browser's `online` and `offline` events update the state immediately. The app rechecks origin reachability on startup and when the window regains focus or visibility. Connectivity signals do not guarantee that an individual weather provider is working.
+
 ## Offline behavior
 
 During installation, the service worker reads `precache-manifest.json` and caches HTML, icons, the manifest, and **all hashed production JavaScript/CSS assets** before activating. Once installation has finished and the page has been reloaded online, the PWA can launch offline without missing scripts.
@@ -54,7 +64,10 @@ After deployment, revisit/reload the page online to acquire updated assets. Brow
 - [ ] In DevTools → Application → Cache Storage, verify the JavaScript and CSS files are cached.
 - [ ] Set DevTools → Network to Offline (or stop the preview server) and reload: the UI must render.
 - [ ] Do not use `npm run dev` as an offline test; Vite development modules need a running server.
-- [ ] Both weather buttons report network failure offline rather than presenting stale data as live information.
+- [ ] With DevTools → Network → Offline: banner says OFFLINE, amber theme appears, and weather/city search buttons are disabled.
+- [ ] Re-enable network: banner returns to ONLINE and normal blue theme returns.
+- [ ] Stop `npm run preview` while leaving the device online, then reload the cached app: banner says SERVER UNREACHABLE and uses the warning theme.
+- [ ] Third-party API failures still show errors rather than presenting stale forecasts as live information.
 - [ ] Test installability on the actual target device/browser.
 
 ## Documentation policy
