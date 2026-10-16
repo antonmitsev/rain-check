@@ -25,13 +25,13 @@ Install prompts are browser-dependent. RainCheck does not display a custom insta
 
 ## Connection indicator and theme
 
-RainCheck always shows a connection banner below the header:
+RainCheck hides its connection banner during normal online operation to keep the forecast higher on the page. The warning banner appears only while offline or when the origin server is unreachable:
 
-- **ONLINE** — browser connectivity is reported and the origin check has not failed; the standard blue theme is used.
+- **ONLINE** — no banner is displayed; the standard blue theme is used.
 - **OFFLINE** — `navigator.onLine` reports offline; a warm amber theme and explicit offline message appear. The Check weather button stays active and fills both cards with saved observations or forecasts instantly; city search and GPS lookup do not issue requests.
 - **SERVER UNREACHABLE** — the browser may still have internet but a network-only request to this app's `version.json` fails (for example, after stopping `npm run preview`). The warm warning theme appears. Live weather actions remain enabled because third-party APIs may still work.
 
-The browser's `online` and `offline` events update the state immediately. The app rechecks origin reachability on startup and when the window regains focus or visibility. Connectivity signals do not guarantee that an individual weather provider is working.
+The browser's `online` and `offline` events update the warning state immediately. Other status, loading, and error messages are displayed in a temporary, automatically dismissed top toast instead of a permanent Answer panel. The app rechecks origin reachability on startup and when the window regains focus or visibility. Connectivity signals do not guarantee that an individual weather provider is working.
 
 ## Recent checks history
 
@@ -72,7 +72,7 @@ After deployment, revisit/reload the page online to acquire updated assets. Brow
 - [ ] In DevTools → Application → Cache Storage, verify the JavaScript and CSS files are cached.
 - [ ] Set DevTools → Network to Offline (or stop the preview server) and reload: the UI must render.
 - [ ] Do not use `npm run dev` as an offline test; Vite development modules need a running server.
-- [ ] With DevTools → Network → Offline: banner says OFFLINE, amber theme appears, and Check weather stays enabled.
+- [ ] While online, no ONLINE banner consumes space; with DevTools → Network → Offline, the OFFLINE warning banner and amber theme appear and Check weather stays enabled.
 - [ ] First fetch a forecast online, then go offline and click Check weather. Both cards and the saved timestamp appear immediately, without a loading state or API traffic.
 - [ ] Check four different places online: only the last three appear under Recent checks.
 - [ ] Check a previously listed place again: only its newest entry remains, now first.
@@ -82,7 +82,7 @@ After deployment, revisit/reload the page online to acquire updated assets. Brow
 - [ ] Close and reopen the PWA offline: saved location and weather are restored.
 - [ ] Clear site data, reload offline and click a weather button: the empty-state message appears instead of a spinner.
 - [ ] Run `npm test` to verify offline cache storage, retrieval, limits, and fallback formatting.
-- [ ] Re-enable network: banner returns to ONLINE and normal blue theme returns.
+- [ ] Re-enable network: the warning banner disappears and the normal blue theme returns.
 - [ ] Stop `npm run preview` while leaving the device online, then reload the cached app: banner says SERVER UNREACHABLE and uses the warning theme.
 - [ ] Third-party API failures fall back to clearly labeled cached data when available, or display an error when there is no snapshot.
 - [ ] Test installability on the actual target device/browser.
