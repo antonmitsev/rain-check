@@ -2,7 +2,7 @@
 
 ## 1. Scope
 
-A single-page application showing the selected location, one weather check button, two weather status cards, and a concise weather response. The goal is to answer nearby rainfall questions clearly and at minimal cost.
+A single-page application showing the selected location, one weather check button, two weather status cards, a three-item recent-check history, and a concise weather response. The goal is to answer nearby rainfall questions clearly and at minimal cost.
 
 ## 2. User flow
 
@@ -18,8 +18,8 @@ A single-page application showing the selected location, one weather check butto
 | --- | --- | --- |
 | F01 | Geolocation | Automatically attempt location discovery when the app starts, obtain latitude and longitude after permission is granted. Reverse-geocode the coordinates to display a readable location name and an explicit confirmation. If reverse geocoding fails, display coordinates instead. |
 | F02 | Manual city fallback | A city search works when geolocation is blocked or unavailable. After 3 typed characters, show selectable city suggestions with administrative region and country. |
-| F03 | Current rainfall and onset | | If currently raining, report it. If not, find the first future hourly rain/showers amount of at least 0.1 mm and show its approximate time and day. State clearly when no rain is forecast or hourly data is unavailable. Never present a forecast as an on-site observation. |
-| F04 | Rain-stop estimate | | Estimate an approximate stop time using the hourly forecast. |
+| F03 | Current rainfall and onset | If currently raining, report it. If not, find the first future hourly rain/showers amount of at least 0.1 mm and show its approximate time and day. State clearly when no rain is forecast or hourly data is unavailable. Never present a forecast as an on-site observation. |
+| F04 | Rain-stop estimate | Estimate an approximate stop time using the hourly forecast. |
 | F05 | English responses | Responses are brief and do not claim exact stop times. |
 | F06 | Weather cache | Cache responses by approximate coordinates for up to 10 minutes. |
 | F07 | Error handling | Explain network, geolocation, and unavailable-data failures. |
@@ -30,6 +30,7 @@ A single-page application showing the selected location, one weather check butto
 | F12 | Project credits | The footer links to tonymitsev.com and OpenAI as a transparent AI-assisted development acknowledgment, without suggesting official endorsement. |
 | F13 | Connectivity indication | Show a persistent connection banner and warm warning theme when offline or when the origin server is unreachable. Keep weather actions responsive while offline. |
 | F14 | Persistent offline forecasts | Save the last selected location and up to eight time-stamped weather snapshots in localStorage. Persist the rain-stop forecast and the next expected rain onset for dry conditions. Offline answers include historical timestamps and use an explicit date for future rain estimates, without spinners or API requests. |
+| F18 | Three recent weather checks | Show the last three unique checked locations, newest first, including last check time, current rain state and saved upcoming change. Rechecking a location replaces its previous entry and moves it to the top. Store the entries in localStorage alongside offline weather snapshots. Clicking a history entry shows the exact saved result without GPS, geocoding, weather API calls, or a loader. Silent prefetch is not a new history entry. |
 | F17 | Unified results UI | Replace two question buttons with one **Check weather** button. Display a current status card and a next-change card below. Raining/Wet uses blue backgrounds and matching badges; Dry uses yellow. Next-change card uses the color of the expected future state. Cards work with offline cached observations. |\n| F15 | Compact hero heading | Render "Do I need an umbrella?" without an explicit line break and with smaller responsive typography. |
 | F16 | Enforce HTTPS on Apache | Include `public/.htaccess` in the production build to redirect HTTP requests to HTTPS with HTTP 301, preserving the host, path, and query string. Require an available SSL/TLS certificate. |
 
@@ -53,6 +54,11 @@ A single-page application showing the selected location, one weather check butto
 ## 6. Acceptance criteria
 
 - One Check weather button updates both status cards together.
+- Four successful checks across four locations leave only three entries, in newest-first order.
+- Rechecking the same coordinates replaces the old entry; opening that entry does not reorder it.
+- Clicking any recent check online or offline fills the two status cards from its stored snapshot without API calls.
+- Silent weather prefetches and merely selecting a location do not create history records.
+- The history survives a page reload, and old localStorage records without a history remain usable.
 - A successful GPS lookup visibly confirms the resolved city/region/country or falls back to coordinates.
 - City suggestions are debounced and selectable by mouse or keyboard.
 - Denied geolocation permission is handled explicitly.
