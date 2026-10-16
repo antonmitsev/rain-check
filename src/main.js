@@ -227,11 +227,12 @@ function renderHistory() {
     return;
   }
   for (const entry of entries) {
+    // Two sibling buttons inside the same card: accessible, with no nested buttons.
     const row = document.createElement('div');
-    row.className = 'history-entry';
+    row.className = 'history-item';
     const button = document.createElement('button');
     button.type = 'button';
-    button.className = 'history-item';
+    button.className = 'history-open';
     button.title = 'Show saved weather without downloading a new forecast';
 
     const heading = document.createElement('span');
@@ -263,7 +264,7 @@ function renderHistory() {
     button.append(heading, details);
     button.addEventListener('click', () => openHistoryEntry(entry));
 
-    // Separate sibling controls avoid nested buttons and accidental playback.
+    // The delete control is positioned inside the card and cannot trigger playback.
     const removeButton = document.createElement('button');
     removeButton.type = 'button';
     removeButton.className = 'history-remove';
