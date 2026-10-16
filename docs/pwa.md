@@ -33,6 +33,12 @@ RainCheck always shows a connection banner below the header:
 
 The browser's `online` and `offline` events update the state immediately. The app rechecks origin reachability on startup and when the window regains focus or visibility. Connectivity signals do not guarantee that an individual weather provider is working.
 
+## Recent checks history
+
+RainCheck shows up to **three** most recent distinct locations that were explicitly checked using **Check weather**, with their last check time and wet/dry status. Repeating a check for the same rounded coordinates replaces its older entry and moves it to the top. The entries are stored in the existing localStorage store (`raincheck:offline:v1`) and remain visible after offline restart.
+
+Selecting a history item displays the snapshot captured on its last check, with a clearly marked saved timestamp. It **never** makes an API request, runs GPS, shows a loader, or changes the order of history, even while online. Silent weather prefetch and location selection alone do not create history entries. The full weather snapshot store still keeps up to eight locations independently of the three visible recent checks.
+
 ## Offline behavior
 
 During installation, the service worker reads `precache-manifest.json` and caches HTML, icons, the manifest, and **all hashed production JavaScript/CSS assets** before activating. Once installation has finished and the page has been reloaded online, the PWA can launch offline without missing scripts.
@@ -68,6 +74,10 @@ After deployment, revisit/reload the page online to acquire updated assets. Brow
 - [ ] Do not use `npm run dev` as an offline test; Vite development modules need a running server.
 - [ ] With DevTools → Network → Offline: banner says OFFLINE, amber theme appears, and Check weather stays enabled.
 - [ ] First fetch a forecast online, then go offline and click Check weather. Both cards and the saved timestamp appear immediately, without a loading state or API traffic.
+- [ ] Check four different places online: only the last three appear under Recent checks.
+- [ ] Check a previously listed place again: only its newest entry remains, now first.
+- [ ] Select a Recent checks item while online and offline: its saved cards appear instantly, with **zero requests** in DevTools → Network.
+- [ ] Reload the PWA offline: the three recent checks persist, and merely opening them does not reorder the list.
 - [ ] If the saved snapshot reports dry weather, the offline **Is it raining?** answer includes the saved next-rain prediction with an explicit calendar date (when forecast data was available).
 - [ ] Close and reopen the PWA offline: saved location and weather are restored.
 - [ ] Clear site data, reload offline and click a weather button: the empty-state message appears instead of a spinner.
