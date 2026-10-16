@@ -23,6 +23,8 @@ A single-page application showing the selected location, two action buttons, and
 | F05 | English responses | Responses are brief and do not claim exact stop times. |
 | F06 | Weather cache | Cache responses by approximate coordinates for up to 10 minutes. |
 | F07 | Error handling | Explain network, geolocation, and unavailable-data failures. |
+| F08 | PWA installation | Provide a valid web manifest, 192px and 512px icons, standalone display mode, and a registered service worker. |
+| F09 | Offline app shell | Previously loaded UI opens offline; live weather and geocoding require network access and should show an error if unavailable. |
 
 ## 4. Non-functional requirements
 
@@ -48,6 +50,8 @@ A single-page application showing the selected location, two action buttons, and
 - No invented or falsely precise stop times.
 - Repeated requests within 10 minutes reuse cached data.
 - The production application runs as a static website without a backend.
+- After one successful online visit, the application shell is available offline.
+- PWA installation works on supported browsers under HTTPS.
 
 ## 7. Out of scope for v0.1
 
