@@ -34,21 +34,22 @@ function forecastHours(data) {
   return start < 0 ? null : { times, amounts, start };
 }
 
-function approximateTime(time, currentTime) {
+function approximateTime(time, currentTime, absoluteDate = false) {
   const date = time.slice(0, 10);
   const clock = time.slice(11, 16);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !/^\d{2}:\d{2}$/.test(clock)) return null;
-  if (date === currentTime.slice(0, 10)) return `around ${clock} today`;
+  if (!absoluteDate && date === currentTime.slice(0, 10)) return `around ${clock} today`;
   const currentDay = Date.parse(`${currentTime.slice(0, 10)}T00:00:00Z`);
   const forecastDay = Date.parse(`${date}T00:00:00Z`);
-  if (forecastDay - currentDay === 86_400_000) return `around ${clock} tomorrow`;
+  if (!Number.isFinite(currentDay) || !Number.isFinite(forecastDay)) return null;
+  if (!absoluteDate && forecastDay - currentDay === 86_400_000) return `around ${clock} tomorrow`;
   const dateLabel = new Intl.DateTimeFormat('en-GB', {
     timeZone: 'UTC', day: 'numeric', month: 'short'
   }).format(new Date(forecastDay));
   return `around ${clock} on ${dateLabel}`;
 }
 
-export function rainStarts(data) {
+export function rainStarts(data, { absoluteDate = false } = {}) {
   const hours = forecastHours(data);
   if (!hours) return 'The hourly forecast cannot estimate when rain may start.';
   const { times, amounts, start } = hours;
@@ -57,7 +58,7 @@ export function rainStarts(data) {
     if (!Number.isFinite(amounts[i])) continue;
     hasValidValues = true;
     if (amounts[i] >= RAIN_THRESHOLD_MM) {
-      const when = approximateTime(times[i], data.current.time);
+      const when = approximateTime(times[i], data.current.time, absoluteDate);
       return when
         ? `Rain is forecast to start ${when} (approximate hourly forecast).`
         : 'The hourly forecast cannot estimate when rain may start.';
