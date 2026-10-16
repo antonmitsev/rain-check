@@ -22,11 +22,11 @@ test('saves a location with reduced precision for the next offline start', () =>
 
 test('persists a time-stamped rain report and forecast across app sessions', () => {
   const store = storage();
-  const timestamp = Date.parse('2026-10-16T11:41:00Z');
-  saveWeatherSnapshot(sofia, { savedAt: timestamp, raining: true, stopForecast: 'Rain was expected to stop around 17:00.' }, store);
+  const timestamp = Date.now() - 120_000;
+  saveWeatherSnapshot(sofia, { savedAt: timestamp, raining: true, observedAt: '2026-10-16T14:30', stopForecast: 'Rain was expected to stop around 17:00.' }, store);
   const snapshot = getWeatherSnapshot({ ...sofia, latitude: 42.6979 }, store);
   assert.equal(snapshot.raining, true);
-  assert.match(formatCachedWeather(snapshot, 'now'), /Saved weather from .*Rain was reported/);
+  assert.match(formatCachedWeather(snapshot, 'now'), /Saved weather from .*Weather time: 2026-10-16 14:30.*Rain was reported/);
   assert.match(formatCachedWeather(snapshot, 'until'), /Saved forecast from .*17:00/);
   assert.match(formatCachedWeather(snapshot, 'until'), /not a live forecast/);
 });
@@ -47,7 +47,7 @@ test('keeps no more than eight recent weather snapshots', () => {
   const store = storage();
   for (let i = 0; i < 10; i++) {
     saveWeatherSnapshot({latitude:40 + i,longitude:20,name:'Town'},{
-      savedAt:Date.parse('2026-10-16T11:41:00Z')+i*1000,
+      savedAt:Date.now()-60_000+i*1000,
       raining:false,stopForecast:'No rain.'
     },store);
   }
