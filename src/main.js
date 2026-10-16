@@ -22,7 +22,10 @@ app.innerHTML = `
   </section>
   <div class="actions"><button id="now" class="action" type="button"><span class="action-symbol">☔</span><span>Is it raining?</span><small>Right now</small></button><button id="until" class="action" type="button"><span class="action-symbol">◷</span><span>When will it stop?</span><small>Next few hours</small></button></div>
   <section id="answer" class="answer" aria-live="polite" role="status"><span class="answer-label">ANSWER</span><p>Choose a location and click a button.</p></section>
-  <footer>Weather data: <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a> · Location names: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap contributors</a> · Local conditions may differ.</footer>
+  <footer>
+    <div>Weather data: <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a> · Location names: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap contributors</a> · Local conditions may differ.</div>
+    <div class="credits">Created by <a href="https://tonymitsev.com/" target="_blank" rel="noopener noreferrer">tonymitsev.com</a> · AI-assisted development with <a href="https://openai.com/" target="_blank" rel="noopener noreferrer">OpenAI</a></div>
+  </footer>
 </section>`;
 
 const versionBadge = document.querySelector('#app-version');
