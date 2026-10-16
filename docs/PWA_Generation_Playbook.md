@@ -1,7 +1,7 @@
 # Production PWA Generation Playbook
 
 **A reusable engineering, product, and UX specification for generating small, dependable Progressive Web Apps**  
-**Version:** 1.0 · **Language for generated UI and code:** English by default · **Format:** Markdown / AI-agent-ready
+**Version:** 1.1 · **Language for generated UI and code:** English by default · **Format:** Markdown / AI-agent-ready
 
 > **Purpose** — Turn an app idea into a deployable, installable, offline-capable PWA with deliberate information hierarchy, reliable cache updates, accessible interactions, minimal UI clutter, and complete documentation. This playbook distills practical design and engineering decisions refined across the RainCheck development session. Rain/weather and location features are **examples**, not universal dependencies.
 >
@@ -11,7 +11,7 @@
 
 ## 0. How to use this document
 
-Use this playbook as a project-generation specification for an AI coding agent or as a human team's baseline. Fill in the **Project Intake** first. Apply **Core** requirements to every PWA, then opt into the feature-specific modules. Put the playbook in the repository or attach it to your agent's prompt, and request deliverables incrementally.
+Use this playbook as a project-generation specification for an AI coding agent or as a human team's baseline. **For fully guided generation, attach the three executable/specification appendices**: [Appendix C — Reference Architecture](playbook/appendix-c-reference-architecture.md), [Appendix D — Domain Specification](playbook/appendix-d-domain-specification.md), and [Appendix E — UX Design System and iOS Icons](playbook/appendix-e-ux-design-system.md). Fill in the **Project Intake** first. Apply **Core** requirements to every PWA, then opt into the feature-specific modules. Put the playbook in the repository or attach it to your agent's prompt, and request deliverables incrementally.
 
 This is intentionally **generic**, not an instruction to recreate RainCheck. Domain words such as *raining*, *will stop*, *forecast*, and *location* are illustrative examples of mutually exclusive states, time-sensitive data, and saved searches. Replace them with the actual application's domain model.
 
@@ -796,7 +796,7 @@ An implementation report should state **what changed**, **where**, **how to depl
 
 ## 14. Copy/paste master prompt for a new PWA
 
-The prompt below is intentionally self-contained, but this entire playbook should accompany it for detailed constraints.
+The prompt below is a project kickoff brief, **not a complete standalone implementation specification**. Supply this playbook, Appendices C/D/E and a completed Domain Specification alongside it. The agent must identify unresolved domain decisions rather than invent them.
 
 ```text
 Act as a senior frontend engineer, Lead UX Designer, and production PWA architect.
@@ -811,8 +811,9 @@ Target clients: [iOS Safari, Android Chrome, Desktop].
 Offline requirement: [LAST VALID RESULT / HISTORY / EDITS / APP SHELL ONLY].
 State model: [CURRENT STATES + VALID TRANSITIONS + UNKNOWN/NO-DATA CASES].
 
-Follow PWA_Generation_Playbook.md as the project's engineering, UX, and
-acceptance-criteria specification. Where a pattern is domain-specific,
+Follow PWA_Generation_Playbook.md **plus** Appendices C (implementation skeleton),
+D (domain/API contract) and E (UX tokens and mobile icons) as the engineering,
+UX and acceptance-criteria specifications. Where a pattern is domain-specific,
 generalize it rather than copying weather labels or assuming GPS is needed.
 
 Non-negotiable UX:
@@ -904,5 +905,19 @@ Reference repository: <https://github.com/antonmitsev/rain-check>
 - When changing offline/update behavior, update the PWA and deployment docs in the **same work unit**.
 - Distinguish “implemented”, “verified”, and “not verified”; never merge these terms.
 - Give explicit user controls for deleting saved data/history and for undoing actions where feasible.
+
+## Appendix C — Runnable PWA reference architecture
+
+[**Appendix C: Executable Reference Architecture**](playbook/appendix-c-reference-architecture.md) provides a copyable Vite/vanilla-JS project, complete offline app-shell precaching, versioning, defensive storage, updating, manifest, generated icons (including a 180×180 Apple touch PNG), and Apache caching. The demonstration provider is intentionally fake and labelled as such; replace it before release.
+
+## Appendix D — Deterministic domain specification
+
+[**Appendix D: Domain Specification Template**](playbook/appendix-d-domain-specification.md) provides an explicit provider interface, state machine, decision table, thresholds, timezone contract, storage schema, race handling, edge cases and domain acceptance criteria. A generic starter must not invent domain rules.
+
+## Appendix E — UX tokens, components and mobile icons
+
+[**Appendix E: UX Design System**](playbook/appendix-e-ux-design-system.md) specifies spacing/typography/color tokens, layout and focus contracts, accessible card/toast/history anatomy, design decisions and a full iPhone Home Screen icon checklist. Do not depend exclusively on webmanifest icon declarations for iOS; generate an opaque 180×180 PNG and reference it using apple-touch-icon.
+
+**For a reproducible new product:** fill the Project Intake, complete Appendix D for the domain, use Appendix C as a scaffold, apply Appendix E, and evaluate the main playbook's acceptance matrix.
 
 *End of playbook.*
