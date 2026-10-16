@@ -20,15 +20,19 @@ npm install
 npm run dev
 ```
 
-Build for production:
+Build for production (including the offline asset manifest and build-specific service worker):
 
 ```sh
 npm run build
 ```
 
-Upload **the contents of `dist/`** to the domain or subdomain's document root. Do not upload `src/` or `node_modules/`.
+Upload **all contents of `dist/`**, including `precache-manifest.json`, to the domain or subdomain's document root. Do not upload `src/` or `node_modules/`.
 
 **[Apache, cPanel, DNS and optional Git deployment instructions](docs/hosting-cpanel.md)**
+
+## Testing PWA offline
+
+Run `npm run build && npm run preview`. Open the page online, wait for the service worker to activate, and reload once before testing in Offline mode. The production JavaScript and CSS are precached at installation. Stopping `npm run dev` is **not** a valid PWA offline test; development mode does not register a service worker. See [PWA tests](docs/pwa.md).
 
 ## Online build version
 
