@@ -73,6 +73,12 @@ This is a simple product heuristic, not a validated meteorological nowcasting te
 - Open-Meteo offers free non-commercial access under its applicable terms.
 - ChatGPT Free is not a programmable API. This MVP does not require an LLM.
 
+## Responsive workspace and icon production
+
+The app uses a `.weather-workspace` wrapper containing a location-search panel and a sibling `.weather-workspace__result` with the primary Check weather action and unified result card. Below **740px**, the content stacks vertically inside the centered **580px maximum-width** shell. In **landscape at 740px or wider**, a two-column CSS grid places search on the left and action + weather status on the right, expanding the shell to a **920px maximum width**. `minmax(0,1fr)`, `min-width:0`, and flexible inputs prevent intrinsic-width overflow. The location and result columns remain functionally independent; recent history spans the shell below them. iOS safe-area insets are respected, and short landscape viewports scroll vertically rather than clipping content.
+
+The icon master is `public/icons/app-icon.svg`. `scripts/prepare-icons.mjs` renders opaque PNGs at **180 (Apple touch)**, **192/512 (manifest)**, and **32 (favicon)** using `@resvg/resvg-js` before Vite builds. HTML explicitly links `icons/apple-touch-icon.png`, sets a web-app title, and the postbuild precache requires the icon assets. This prevents relying on iOS letter fallback. Updating existing iPhone Home Screen shortcuts may require removing/re-adding the shortcut without clearing saved browser data.
+
 ## Recent weather check history
 
 The recent-check section renders up to three clickable results from `getWeatherHistory()` in `src/offline-cache.js`. If the list is empty, the entire section is hidden; otherwise each item includes a compact, parsed next-change summary (for example, `Starts ~19:00`) rather than the raw forecast sentence. An explicit `Check weather` action copies its matching time-stamped weather snapshot to `history[]` under the existing `raincheck:offline:v1` localStorage key. Entries are deduplicated by the same rounded coordinate key as forecast caching, and only the latest explicit check for a location is retained. Each entry stores the place, explicit-check time, and a **copy** of the forecast snapshot at that check, so a later silent prefetch cannot silently change history.
