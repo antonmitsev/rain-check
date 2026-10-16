@@ -33,8 +33,8 @@ A single-page application showing the selected location, one weather check butto
 | F15 | Compact hero heading | Render "Do I need an umbrella?" on one line, with compact typography and subtle positive letter spacing. Place `RAIN AT A GLANCE | TWO QUESTIONS. SHORT ANSWERS. NO SIGN-UP.` above it, with no separate descriptive paragraph. |
 | F16 | Enforce HTTPS on Apache | Include `public/.htaccess` in the production build to redirect HTTP requests to HTTPS with HTTP 301, preserving the host, path, and query string. Require an available SSL/TLS certificate. |
 | F17 | Unified results UI | Replace two question buttons with one **Check weather** button. Display a current status card and a next-change card below. Raining/Wet uses blue backgrounds and matching badges; Dry uses yellow. Next-change card uses the color of the expected future state. Cards work with offline cached observations. |
-| F19 | Transient feedback toast | Replace the permanently visible Answer/Status panel with an accessible fixed-position toast at the top of the screen. Display loading, success, offline, and error messages without shifting content; dismiss them automatically. |
 | F18 | Three recent weather checks | Show the last three unique checked locations, newest first, including last check time, current rain state and saved upcoming change. Rechecking a location replaces its previous entry and moves it to the top. Store the entries in localStorage alongside offline weather snapshots. Clicking a history entry shows the exact saved result without GPS, geocoding, weather API calls, or a loader. Silent prefetch is not a new history entry. |
+| F19 | Transient feedback toast | Replace the permanently visible Answer/Status panel with an accessible fixed-position toast at the top of the screen. Display loading, success, offline, and error messages without shifting content; dismiss them automatically. |
 
 ## 4. Non-functional requirements
 
