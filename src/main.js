@@ -356,6 +356,7 @@ async function getWeather(atLocation = location) {
       saveWeatherSnapshot(atLocation, {
         savedAt: timestamp,
         raining: rainNow(data),
+        observedAt: data.current?.time,
         stopForecast: rainUntil(data)
       });
     }
