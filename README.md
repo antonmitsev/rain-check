@@ -9,6 +9,7 @@ A minimal weather app answering two questions: **"Is it raining?"** and **"When 
 - **When will it stop raining?** — approximate stop time from an hourly forecast.
 - Open-Meteo API, 10-minute in-memory cache, no user accounts, backend, database, or AI service.
 - Responsive interface; deployable as a static website on Apache/cPanel.
+- Installable PWA with home-screen icons and offline app shell. Live weather and city search require connectivity.
 
 ## Run locally
 
@@ -38,10 +39,15 @@ Vite + vanilla JavaScript + CSS. There is no React runtime; this keeps the app s
 - [MVP requirements](docs/requirements.md)
 - [Architecture and algorithm](docs/architecture.md)
 - [Apache shared hosting / cPanel](docs/hosting-cpanel.md)
+- [PWA installation and offline behavior](docs/pwa.md)
 
 ## Limitations
 
 Current conditions describe an estimated area, not a physical sensor at the exact user location. The precipitation stop time is **approximate** and based on an hourly forecast, not radar nowcasting. The browser sends coordinates to Open-Meteo; this app has no application server.
+
+## Contribution rule
+
+Every feature change must update the relevant English documentation in the same change (README, requirements, architecture, deployment notes and/or PWA guide). Keep code comments and UI copy in English.
 
 ## License
 
