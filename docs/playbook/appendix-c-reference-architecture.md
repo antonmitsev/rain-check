@@ -53,7 +53,7 @@ project/
 }
 ~~~
 
-The **pngjs** dependency only creates basic demonstration PNG icons; replace them with real product art before release.
+The **pngjs** dependency creates basic demonstration PNG icons, including an opaque 180px Apple touch icon and a 32px favicon; replace the artwork with real product art before release.
 
 **index.html**
 
@@ -67,7 +67,8 @@ The **pngjs** dependency only creates basic demonstration PNG icons; replace the
   <meta name="description" content="A small offline-capable PWA demonstration.">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icons/icon-192.png" type="image/png">
-  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-title" content="Sample Status">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>Sample Status</title>
 </head>
@@ -152,7 +153,7 @@ import { PNG } from 'pngjs';
 import { mkdir, writeFile } from 'node:fs/promises';
 
 await mkdir('public/icons', { recursive: true });
-for (const size of [192, 512]) {
+for (const size of [32, 180, 192, 512]) {
   const png = new PNG({ width: size, height: size });
   for (let y = 0; y < size; y++) {
     for (let x = 0; x < size; x++) {
@@ -166,7 +167,9 @@ for (const size of [192, 512]) {
       png.data[i + 3] = 255;
     }
   }
-  await writeFile('public/icons/icon-' + size + '.png', PNG.sync.write(png));
+  const filename = size === 180 ? 'apple-touch-icon.png'
+    : size === 32 ? 'favicon-32.png' : 'icon-' + size + '.png';
+  await writeFile('public/icons/' + filename, PNG.sync.write(png));
 }
 ~~~
 
@@ -192,7 +195,8 @@ async function walk(directory) {
 const output = await walk(root);
 for (const required of [
   'index.html', 'sw.js', 'version.json', 'manifest.webmanifest',
-  'icons/icon-192.png', 'icons/icon-512.png'
+  'icons/icon-192.png', 'icons/icon-512.png',
+  'icons/apple-touch-icon.png', 'icons/favicon-32.png'
 ]) {
   if (!output.includes(required)) throw new Error('Missing dist/' + required);
 }
@@ -210,6 +214,7 @@ if (!worker.includes('__CACHE_VERSION__')) throw new Error('Worker placeholder m
 const manifest = [
   'index.html', 'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png',
+  'icons/apple-touch-icon.png', 'icons/favicon-32.png',
   ...assets
 ];
 await writeFile(join(root, 'precache-manifest.json'), JSON.stringify(manifest, null, 2));
