@@ -94,7 +94,7 @@ export function formatCachedWeather(snapshot, kind) {
     return `Saved forecast from ${at}: ${snapshot.stopForecast} This is not a live forecast.`;
   }
   const observedAt = typeof snapshot.observedAt === 'string'
-    && /^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}/.test(snapshot.observedAt)
+    && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(snapshot.observedAt)
     ? ` Weather time: ${snapshot.observedAt.replace('T', ' ')} (location time).`
     : '';
   const condition = snapshot.raining === null
