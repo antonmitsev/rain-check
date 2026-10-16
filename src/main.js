@@ -472,15 +472,13 @@ async function getWeather(atLocation = location) {
     if (controller.signal.aborted || !navigator.onLine) throw new Error('Offline');
     const timestamp = Date.now();
     weatherCache.set(key, { data, time: timestamp });
-    {
-      saveWeatherSnapshot(atLocation, {
+    saveWeatherSnapshot(atLocation, {
         savedAt: timestamp,
         raining: rainNow(data),
         observedAt: data.current?.time,
         stopForecast: rainUntil(data),
         nextRainForecast: rainNow(data) === false ? rainStarts(data, { absoluteDate: true }) : null
       });
-    }
     return data;
   })();
   inflightWeather.set(key, { promise, controller });
@@ -527,8 +525,14 @@ async function ask() {
     if (!navigator.onLine) showSavedWeather(true);
     else {
       const saved = getWeatherSnapshot(selected);
-      if (saved) displaySavedSnapshot(saved);
-      else render(error.message || 'Could not load the forecast.', 'error');
+      if (saved) {
+        displaySavedSnapshot(saved);
+        // An explicit check that falls back to saved data still replaces its last history entry.
+        recordWeatherCheck(selected, saved);
+        renderHistory();
+      } else {
+        render(error.message || 'Could not load the forecast.', 'error');
+      }
     }
   } finally {
     if (requestView === viewToken) setBusy(false);
