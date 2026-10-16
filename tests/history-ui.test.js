@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
-import { recordWeatherCheck, getWeatherHistory, rememberLocation } from '../src/offline-cache.js';
+import { recordWeatherCheck, getWeatherHistory, rememberLocation, removeWeatherHistoryItem } from '../src/offline-cache.js';
 import { rainNow, rainStarts, describeRainNow, rainUntil } from '../src/weather.js';
 
 const appSource = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8')
@@ -66,7 +66,8 @@ function setupApp() {
     saveWeatherSnapshot: () => {},
     getWeatherSnapshot: () => null,
     getWeatherHistory: () => getWeatherHistory(store),
-    recordWeatherCheck: (loc, snap) => recordWeatherCheck(loc, snap, store)
+    recordWeatherCheck: (loc, snap) => recordWeatherCheck(loc, snap, store),
+    removeWeatherHistoryItem: loc => removeWeatherHistoryItem(loc, store)
   };
   const sandbox = {
     document, navigator, window:{addEventListener(){}},
@@ -84,13 +85,13 @@ test('history click only shows stored cards, never requests weather online or of
   const app = setupApp();
   const history = app.select('#history-list');
   assert.equal(history.children.length, 2);
-  history.children[0].listeners.click();
+  history.children[0].children[0].listeners.click();
   assert.equal(app.select('#place').textContent, 'Plovdiv');
   assert.equal(app.select('#summary-now').textContent, 'ВАЛИ');
   assert.equal(app.requests, 0);
 
   app.navigator.onLine = true;
-  history.children[1].listeners.click();
+  history.children[1].children[0].listeners.click();
   assert.equal(app.select('#place').textContent, 'Sofia');
   assert.equal(app.select('#summary-now').textContent, 'СУХО');
   assert.equal(app.requests, 0);
