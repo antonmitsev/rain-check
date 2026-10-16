@@ -66,6 +66,9 @@ export function saveWeatherSnapshot(location, conditions, storage) {
     savedAt: conditions.savedAt,
     raining: conditions.raining,
     stopForecast: conditions.stopForecast.slice(0, 400),
+    nextRainForecast: typeof conditions.nextRainForecast === 'string'
+      ? conditions.nextRainForecast.slice(0, 400)
+      : null,
     observedAt: typeof conditions.observedAt === 'string' ? conditions.observedAt.slice(0, 25) : null
   };
   const ordered = Object.entries(store.snapshots)
@@ -100,5 +103,8 @@ export function formatCachedWeather(snapshot, kind) {
   const condition = snapshot.raining === null
     ? 'Rain conditions were unavailable.'
     : snapshot.raining ? 'Rain was reported in this area.' : 'No rain was reported in this area.';
-  return `Saved weather from ${at}.${observedAt} ${condition} This is not a live observation.`;
+  const nextRain = snapshot.raining === false && typeof snapshot.nextRainForecast === 'string'
+    ? ` ${snapshot.nextRainForecast}`
+    : '';
+  return `Saved weather from ${at}.${observedAt} ${condition}${nextRain} This is not a live observation or forecast.`;
 }
