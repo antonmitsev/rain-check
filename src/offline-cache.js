@@ -1,5 +1,6 @@
 const STORAGE_KEY = 'raincheck:offline:v1';
 const MAX_SNAPSHOTS = 8;
+const MAX_HISTORY = 3;
 
 function getStorage(storage) {
   try { return storage ?? globalThis.localStorage; } catch { return null; }
@@ -9,8 +10,9 @@ function readStore(storage) {
   try {
     const parsed = JSON.parse(getStorage(storage)?.getItem(STORAGE_KEY) || 'null');
     return parsed && parsed.schema === 1 && typeof parsed === 'object'
-      ? { schema: 1, lastLocation: parsed.lastLocation ?? null, snapshots: parsed.snapshots ?? {} }
-      : { schema: 1, lastLocation: null, snapshots: {} };
+      ? { schema: 1, lastLocation: parsed.lastLocation ?? null, snapshots: parsed.snapshots ?? {},
+        history: Array.isArray(parsed.history) ? parsed.history : [] }
+      : { schema: 1, lastLocation: null, snapshots: {}, history: [] };
   } catch {
     return { schema: 1, lastLocation: null, snapshots: {} };
   }
@@ -107,4 +109,52 @@ export function formatCachedWeather(snapshot, kind) {
     ? ` ${snapshot.nextRainForecast}`
     : '';
   return `Saved weather from ${at}.${observedAt} ${condition}${nextRain} This is not a live observation or forecast.`;
+}
+
+function safeSnapshot(snapshot) {
+  if (!snapshot || typeof snapshot !== 'object'
+      || !Number.isFinite(snapshot.savedAt)
+      || snapshot.savedAt > Date.now() + 60_000
+      || ![true, false, null].includes(snapshot.raining)
+      || typeof snapshot.stopForecast !== 'string') return null;
+  return {
+    savedAt: snapshot.savedAt,
+    raining: snapshot.raining,
+    observedAt: typeof snapshot.observedAt === 'string' ? snapshot.observedAt.slice(0, 25) : null,
+    stopForecast: snapshot.stopForecast.slice(0, 400),
+    nextRainForecast: typeof snapshot.nextRainForecast === 'string'
+      ? snapshot.nextRainForecast.slice(0, 400) : null
+  };
+}
+
+// History stores snapshots as they were at the last explicit Check weather action.
+// Neither rendering nor opening a history entry refreshes forecasts or changes its order.
+export function getWeatherHistory(storage) {
+  const entries = readStore(storage).history;
+  return entries
+    .map(entry => {
+      const location = safeLocation(entry?.location);
+      const snapshot = safeSnapshot(entry?.snapshot);
+      if (!location || !snapshot || !Number.isFinite(entry?.checkedAt)
+          || entry.checkedAt > Date.now() + 60_000) return null;
+      return { location, checkedAt: entry.checkedAt, snapshot };
+    })
+    .filter(Boolean)
+    .sort((a, b) => b.checkedAt - a.checkedAt)
+    .filter((entry, index, all) => all.findIndex(item =>
+      locationKey(item.location) === locationKey(entry.location)) === index)
+    .slice(0, MAX_HISTORY);
+}
+
+export function recordWeatherCheck(location, snapshot, storage, checkedAt = Date.now()) {
+  const safe = safeLocation(location);
+  const saved = safeSnapshot(snapshot);
+  if (!safe || !saved || !Number.isFinite(checkedAt)) return false;
+  const key = locationKey(safe);
+  const history = getWeatherHistory(storage).filter(entry =>
+    locationKey(entry.location) !== key);
+  history.unshift({ location: safe, checkedAt, snapshot: saved });
+  const store = readStore(storage);
+  store.history = history.slice(0, MAX_HISTORY);
+  return writeStore(store, storage);
 }
