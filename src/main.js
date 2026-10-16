@@ -1,6 +1,6 @@
 import './style.css';
 import { rainNow, rainStarts, describeRainNow, rainUntil } from './weather.js';
-import { rememberLocation, getLastLocation, saveWeatherSnapshot, getWeatherSnapshot, recordWeatherCheck, getWeatherHistory } from './offline-cache.js';
+import { rememberLocation, getLastLocation, saveWeatherSnapshot, getWeatherSnapshot, recordWeatherCheck, getWeatherHistory, removeWeatherHistoryItem } from './offline-cache.js';
 
 const app = document.querySelector('#app');
 const CACHE_TTL = 10 * 60 * 1000;
@@ -227,6 +227,8 @@ function renderHistory() {
     return;
   }
   for (const entry of entries) {
+    const row = document.createElement('div');
+    row.className = 'history-entry';
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'history-item';
@@ -260,7 +262,24 @@ function renderHistory() {
     details.append(badge, summary);
     button.append(heading, details);
     button.addEventListener('click', () => openHistoryEntry(entry));
-    historyList.append(button);
+
+    // Separate sibling controls avoid nested buttons and accidental playback.
+    const removeButton = document.createElement('button');
+    removeButton.type = 'button';
+    removeButton.className = 'history-remove';
+    removeButton.textContent = '×';
+    removeButton.title = 'Remove this recent check';
+    removeButton.setAttribute('aria-label', `Remove ${entry.location.name} from recent checks`);
+    removeButton.addEventListener('click', () => {
+      if (removeWeatherHistoryItem(entry.location)) {
+        renderHistory();
+        render('Removed from recent checks.', 'success');
+      } else {
+        render('Could not remove this recent check.', 'error');
+      }
+    });
+    row.append(button, removeButton);
+    historyList.append(row);
   }
 }
 
