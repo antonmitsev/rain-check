@@ -1,4 +1,5 @@
 import './style.css';
+import { rememberLocation, getLastLocation, saveWeatherSnapshot, getWeatherSnapshot, formatCachedWeather } from './offline-cache.js';
 
 const app = document.querySelector('#app');
 const CACHE_TTL = 10 * 60 * 1000;
@@ -12,6 +13,9 @@ let cityMatches = [];
 let activeSuggestion = -1;
 let originUnavailable = false;
 let originCheckId = 0;
+let gpsRequestId = 0;
+let citySearchController;
+const inflightWeather = new Map();
 const reverseCache = new Map();
 
 app.innerHTML = `
@@ -22,7 +26,7 @@ app.innerHTML = `
     <strong id="connection-label">ONLINE</strong>
     <span id="connection-description">Live weather available</span>
   </div>
-  <div class="hero"><div class="eyebrow">WEATHER IN TWO CLICKS</div><h1>Do I need an<br><em>umbrella?</em></h1><p>Two questions. Short answers. No sign-up.</p></div>
+  <div class="hero"><div class="eyebrow">WEATHER IN TWO CLICKS</div><h1>Do I need an <em>umbrella?</em></h1><p>Two questions. Short answers. No sign-up.</p></div>
   <section class="location-panel" aria-label="Location">
     <div class="location-line"><span class="pin">⌖</span><div><small>Location</small><strong id="place">Not selected yet</strong><small id="location-status" class="location-status" aria-live="polite">Choose a city or find your location</small></div><button id="locate" class="link-btn" type="button">Find me</button></div>
     <form id="city-form"><label for="city">Or enter a city</label><div class="city-input"><input id="city" name="city" placeholder="e.g. London" autocomplete="address-level2" required minlength="2"><button type="submit">Search</button></div><div id="suggestions" class="suggestions" role="listbox" aria-label="City suggestions" hidden></div></form>
@@ -70,13 +74,26 @@ function render(message, category = '') {
 }
 function setBusy(value) {
   busy = value;
-  const offline = !navigator.onLine;
-  actionButtons.forEach(button => { button.disabled = value || offline; });
-  locateButton.disabled = value;
-  cityForm.querySelector('button').disabled = value || offline;
-  cityInput.disabled = offline;
+  // Offline actions stay clickable so they can show saved data immediately.
+  actionButtons.forEach(button => { button.disabled = value && navigator.onLine; });
+  locateButton.disabled = value && navigator.onLine;
+  cityForm.querySelector('button').disabled = value && navigator.onLine;
+  cityInput.disabled = false;
 }
 
+function showSavedWeather(kind = 'now') {
+  const saved = location ? getWeatherSnapshot(location) : null;
+  render(formatCachedWeather(saved, kind), 'offline');
+}
+
+function restoreSavedLocation() {
+  const saved = getLastLocation();
+  if (!saved) return;
+  location = saved;
+  place.textContent = saved.name;
+  status.textContent = '✓ Saved location';
+  cityInput.value = saved.name;
+}
 function updateConnectionState() {
   const offline = !navigator.onLine;
   const warning = offline || originUnavailable;
@@ -84,20 +101,26 @@ function updateConnectionState() {
   document.body.classList.toggle('offline-mode', warning);
   connectionLabel.textContent = offline ? 'OFFLINE' : originUnavailable ? 'SERVER UNREACHABLE' : 'ONLINE';
   connectionDescription.textContent = offline
-    ? 'Live weather and city search are unavailable'
+    ? 'Showing saved weather; no live requests'
     : originUnavailable ? 'App is cached; live weather may still work' : 'Live weather available';
   themeMeta?.setAttribute('content', warning ? '#382a22' : '#101c2d');
-  setBusy(busy);
 
   if (offline) {
+    ++gpsRequestId;
     clearTimeout(suggestionTimer);
     suggestionController?.abort();
+    citySearchController?.abort();
+    for (const request of inflightWeather.values()) request.controller.abort();
     clearSuggestions();
-    if (!busy) render('Offline mode. Reconnect to check current rainfall.', 'offline');
-  } else if (originUnavailable && !hadWarning && !busy) {
-    render('The app server is unreachable. Cached UI is available; live weather may still work.', 'offline');
-  } else if (!warning && hadWarning && !busy) {
-    render('Connection restored. Choose a question for fresh weather data.', 'success');
+    setBusy(false);
+    showSavedWeather('now');
+  } else {
+    setBusy(busy);
+    if (originUnavailable && !hadWarning && !busy) {
+      render('The app server is unreachable. Cached UI is available; live weather may still work.', 'offline');
+    } else if (!warning && hadWarning && !busy) {
+      render('Connection restored. Choose a question for fresh weather data.', 'success');
+    }
   }
 }
 
@@ -120,14 +143,18 @@ function setLocation(latitude, longitude, name, source = 'city') {
   clearTimeout(suggestionTimer);
   suggestionController?.abort();
   location = {latitude, longitude, name};
+  rememberLocation(location);
   place.textContent = name;
   status.textContent = source === 'gps' ? '✓ GPS location confirmed' : '✓ Location selected';
   cityInput.value = source === 'gps' ? '' : name;
   clearSuggestions();
-  render(navigator.onLine
-    ? 'Location confirmed. Choose a question.'
-    : 'Location confirmed. Reconnect to check live weather.',
-    navigator.onLine ? 'success' : 'offline');
+  if (!navigator.onLine) {
+    showSavedWeather('now');
+  } else {
+    render('Location confirmed. Choose a question.', 'success');
+    // Prefetch the first forecast silently so it is available for a later offline launch.
+    void getWeather(location).catch(() => {});
+  }
 }
 function clearSuggestions() {
   suggestions.replaceChildren();
@@ -164,6 +191,7 @@ function showSuggestions(cities) {
   suggestions.hidden = false;
 }
 async function searchCities(query, signal) {
+  if (!navigator.onLine) throw new Error('City search is unavailable offline.');
   const url = new URL('https://geocoding-api.open-meteo.com/v1/search');
   url.search = new URLSearchParams({name: query, count: '7', language: 'en', format: 'json'}).toString();
   const response = await fetch(url, {signal});
@@ -172,6 +200,7 @@ async function searchCities(query, signal) {
   return data.results ?? [];
 }
 function suggestCities() {
+  if (!navigator.onLine) { clearSuggestions(); return; }
   clearTimeout(suggestionTimer);
   suggestionController?.abort();
   const query = cityInput.value.trim();
@@ -215,28 +244,42 @@ function getCurrentPosition() {
   });
 }
 async function locate() {
+  if (!navigator.onLine) {
+    if (!location) restoreSavedLocation();
+    showSavedWeather('now');
+    return;
+  }
   if (busy) return;
+  const requestId = ++gpsRequestId;
   setBusy(true);
   render('Finding your location…', 'loading');
   try {
     const pos = await getCurrentPosition();
-    const {latitude, longitude} = pos.coords;
+    if (!navigator.onLine || requestId !== gpsRequestId) return;
+    const { latitude, longitude } = pos.coords;
     let name;
     try {
       name = await reverseGeocode(latitude, longitude);
     } catch {
       name = `GPS: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
     }
+    if (!navigator.onLine || requestId !== gpsRequestId) return;
     setLocation(latitude, longitude, name, 'gps');
   } catch (error) {
+    if (!navigator.onLine || requestId !== gpsRequestId) return;
     render(error.code === 1
       ? 'Location access was denied. Enter a city below.'
       : 'Could not determine your location. Enter a city below.', 'error');
-  } finally { setBusy(false); }
+  } finally {
+    if (requestId === gpsRequestId) setBusy(false);
+  }
 }
 async function chooseCity(event) {
   event.preventDefault();
-  if (!navigator.onLine) return render('City search requires an internet connection.', 'offline');
+  if (!navigator.onLine) {
+    showSavedWeather('now');
+    return;
+  }
   if (busy) return;
   const name = cityInput.value.trim();
   if (name.length < 2) return;
@@ -244,16 +287,26 @@ async function chooseCity(event) {
   render('Searching for cities…', 'loading');
   clearTimeout(suggestionTimer);
   suggestionController?.abort();
+  const controller = new AbortController();
+  citySearchController = controller;
   try {
-    const cities = await searchCities(name);
+    const cities = await searchCities(name, controller.signal);
+    if (!navigator.onLine || controller.signal.aborted) return;
     if (!cities.length) throw new Error('City not found. Try another name.');
     if (cities.length === 1) chooseMatch(cities[0]);
     else {
       showSuggestions(cities);
       render('Select the correct location from the suggestions.');
     }
-  } catch (error) { render(error.message || 'City search failed.', 'error'); }
-  finally { setBusy(false); }
+  } catch (error) {
+    if (!navigator.onLine || controller.signal.aborted) return;
+    render(error.message || 'City search failed.', 'error');
+  } finally {
+    if (citySearchController === controller) {
+      citySearchController = undefined;
+      setBusy(false);
+    }
+  }
 }
 cityInput.addEventListener('input', suggestCities);
 cityInput.addEventListener('keydown', (event) => {
@@ -274,24 +327,46 @@ cityInput.addEventListener('keydown', (event) => {
 document.addEventListener('click', (event) => {
   if (!cityForm.contains(event.target)) clearSuggestions();
 });
-async function getWeather() {
-  const key = `${location.latitude.toFixed(2)}:${location.longitude.toFixed(2)}`;
+async function getWeather(atLocation = location) {
+  // Offline mode never starts a fetch, even when a cached in-memory result exists.
+  if (!navigator.onLine) throw new Error('Offline');
+  const key = `${atLocation.latitude.toFixed(2)}:${atLocation.longitude.toFixed(2)}`;
   const cached = weatherCache.get(key);
   if (cached && Date.now() - cached.time < CACHE_TTL) return cached.data;
-  const url = new URL('https://api.open-meteo.com/v1/forecast');
-  url.search = new URLSearchParams({
-    latitude: String(location.latitude),
-    longitude: String(location.longitude),
-    current: 'rain,showers,precipitation',
-    hourly: 'precipitation,precipitation_probability',
-    forecast_days: '2',
-    timezone: 'auto'
-  }).toString();
-  const response = await fetch(url);
-  if (!response.ok) throw new Error('The weather service is unavailable.');
-  const data = await response.json();
-  weatherCache.set(key, {data, time: Date.now()});
-  return data;
+  const inProgress = inflightWeather.get(key);
+  if (inProgress) return inProgress.promise;
+  const controller = new AbortController();
+  const promise = (async () => {
+    const url = new URL('https://api.open-meteo.com/v1/forecast');
+    url.search = new URLSearchParams({
+      latitude: String(atLocation.latitude),
+      longitude: String(atLocation.longitude),
+      current: 'rain,showers,precipitation',
+      hourly: 'precipitation,precipitation_probability',
+      forecast_days: '2',
+      timezone: 'auto'
+    }).toString();
+    const response = await fetch(url, { signal: controller.signal });
+    if (!response.ok) throw new Error('The weather service is unavailable.');
+    const data = await response.json();
+    if (controller.signal.aborted || !navigator.onLine) throw new Error('Offline');
+    const timestamp = Date.now();
+    weatherCache.set(key, { data, time: timestamp });
+    if (rainNow(data) !== null) {
+      saveWeatherSnapshot(atLocation, {
+        savedAt: timestamp,
+        raining: rainNow(data),
+        stopForecast: rainUntil(data)
+      });
+    }
+    return data;
+  })();
+  inflightWeather.set(key, { promise, controller });
+  try {
+    return await promise;
+  } finally {
+    if (inflightWeather.get(key)?.controller === controller) inflightWeather.delete(key);
+  }
 }
 function rainNow(data) {
   const current = data.current;
@@ -320,13 +395,20 @@ function rainUntil(data) {
   return 'The near-term forecast does not show a clear end to the rain.';
 }
 async function ask(kind) {
-  if (!navigator.onLine) return render('Live weather is unavailable offline. Reconnect and try again.', 'offline');
+  if (!navigator.onLine) {
+    showSavedWeather(kind);
+    return;
+  }
   if (busy) return;
   if (!location) return render('First select Find me or enter a city.', 'error');
   setBusy(true);
   render('Checking the forecast…', 'loading');
   try {
-    const data = await getWeather();
+    const data = await getWeather(location);
+    if (!navigator.onLine) {
+      showSavedWeather(kind);
+      return;
+    }
     const raining = rainNow(data);
     const message = kind === 'now'
       ? raining === null ? 'There is not enough current rainfall data.'
@@ -334,8 +416,17 @@ async function ask(kind) {
         : 'According to current weather data, it is not raining in this area.'
       : rainUntil(data);
     render(message, 'success');
-  } catch (error) { render(error.message || 'Could not load the forecast.', 'error'); }
-  finally { setBusy(false); }
+  } catch (error) {
+    if (!navigator.onLine) showSavedWeather(kind);
+    else {
+      const saved = location && getWeatherSnapshot(location);
+      render(saved
+        ? `Weather service unavailable. ${formatCachedWeather(saved, kind)}`
+        : error.message || 'Could not load the forecast.', saved ? 'offline' : 'error');
+    }
+  } finally {
+    setBusy(false);
+  }
 }
 locateButton.addEventListener('click', locate);
 // Start location discovery when the app opens; the manual city search remains available after failure.
@@ -357,10 +448,11 @@ window.addEventListener('focus', () => { void checkAppServer(); });
 document.addEventListener('visibilitychange', () => {
   if (!document.hidden) void checkAppServer();
 });
+restoreSavedLocation();
 updateConnectionState();
 void checkAppServer();
 
-void locate();
+if (navigator.onLine) void locate();
 
 if ('serviceWorker' in navigator) {
   if (import.meta.env.PROD) {
