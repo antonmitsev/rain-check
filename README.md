@@ -30,6 +30,22 @@ Upload **the contents of `dist/`** to the domain or subdomain's document root. D
 
 **[Apache, cPanel, DNS and optional Git deployment instructions](docs/hosting-cpanel.md)**
 
+## Online build version
+
+Each `npm run build` generates `dist/version.json` automatically. After uploading the complete `dist/` contents to Apache, check `https://your-domain.example/version.json` (or `https://your-domain.example/rain-check/version.json` for subdirectory deployments).
+
+Example response:
+
+```json
+{
+  "version": "0.1.0",
+  "builtAt": "2026-10-16T12:00:00.000Z",
+  "commit": "abc123def456"
+}
+```
+
+The version is read from `package.json`. `builtAt` is the UTC time of the build, not deployment time. `commit` uses `GITHUB_SHA` / `COMMIT_SHA` or the local Git HEAD; it is `null` when Git metadata is unavailable. Every build gets a new timestamp, even if the semantic version does not change. See [deployment guide](docs/hosting-cpanel.md).
+
 ## Technology
 
 Vite + vanilla JavaScript + CSS. There is no React runtime; this keeps the app small and dependency-light. Weather and geocoding services are provided by [Open-Meteo](https://open-meteo.com/), subject to its terms of use.
