@@ -119,6 +119,24 @@ body.offline-mode{background:radial-gradient(circle at 80% 0%,#4a3931 0,transpar
 @media(prefers-reduced-motion:reduce){.toast--enter,.toast--exit{animation:none}}
 
 
-/* Use a 580px desktop column; never override it with max-width:100%. */
-#app{width:100%;min-width:0}
+/* The global border-box reset is already correct. Prevent flex/grid min-content
+   widths from stretching the entire application beyond the mobile viewport. */
+html,body,#app{width:100%;max-width:100%;min-width:0}
 .shell{width:100%;max-width:580px;min-width:0;margin-inline:auto}
+.shell>:not(.toast){width:100%;max-width:100%;min-width:0}
+.shell header{gap:10px}
+.shell header .brand{flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.shell header .version{flex:0 1 auto;min-width:0;max-width:42%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hero,.eyebrow,.location-panel,.location-line,.city-input,.actions,.weather-results,.weather-summary,.history,.history-list,.history-item,footer{min-width:0;max-width:100%}
+.eyebrow{overflow-wrap:anywhere}
+.location-line{width:100%;gap:8px}
+.location-line>div{flex:1 1 0;min-width:0}
+.location-line>.link-btn{flex:0 0 auto;padding:8px 5px;white-space:nowrap}
+.city-input{width:100%;display:flex;gap:8px}
+.city-input input{width:0;min-width:0;flex:1 1 0}
+.city-input button{flex:0 0 auto}
+footer{overflow-wrap:anywhere}
+@media(max-width:440px){
+  .hero h1{white-space:normal}
+  .location-line{gap:6px}
+}
