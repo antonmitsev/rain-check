@@ -13,7 +13,8 @@ A minimal weather app that checks current rainfall and the next expected weather
 - Responsive interface; deployable as a static website on Apache/cPanel.
 - Installable PWA with an offline app shell and **saved weather snapshots**, available without a network.
 - A successful weather fetch is saved on-device along with the selected location, its observation timestamp, and the time it was saved. Up to eight locations are retained; the saved data is always labeled as historical, never live.
-- Prominent connectivity banner: **ONLINE**, **OFFLINE**, or **SERVER UNREACHABLE**. An amber offline-style theme appears whenever the browser is offline or the app server cannot be reached. The origin check is a network-only fetch of `version.json`; a server outage does not automatically disable weather services on an otherwise connected device.
+- No persistent status banner while online: the connectivity warning appears only for **OFFLINE** or **SERVER UNREACHABLE**. The amber offline theme is retained for those states. The origin check is a network-only fetch of `version.json`; a server outage does not automatically disable external weather services.
+- Status, loading, and error messages appear as brief, auto-dismissed **top toasts** instead of a permanent Answer/Status panel. The hero eyebrow reads `RAIN AT A GLANCE | TWO QUESTIONS. SHORT ANSWERS. NO SIGN-UP.`, and the compact headline uses subtle positive letter spacing.
 
 ## Run locally
 
@@ -36,7 +37,7 @@ Upload **all contents of `dist/`**, including `precache-manifest.json` and hidde
 
 ## Connectivity status
 
-The banner responds to browser online/offline events and checks the app server on startup, focus, and return to a visible tab. **OFFLINE** means the browser reports no network connectivity (weather buttons immediately show the last saved observation or forecast without a request or loading spinner). **SERVER UNREACHABLE** means the app was loaded from cache but its origin cannot be reached; external weather APIs might still work, so the buttons remain enabled. **ONLINE** means the browser reports a connection and the origin check has not failed. `navigator.onLine` and origin reachability are only indicators, not guarantees that every weather provider is available. Offline city lookup and Find me do not make network requests; Find me reuses the saved location.
+The warning banner is hidden during normal online operation to prioritize the forecast cards. It appears for OFFLINE and SERVER UNREACHABLE. Connectivity is checked on startup, focus, and return to a visible tab. **OFFLINE** means the browser reports no network connectivity (weather buttons immediately show the last saved observation or forecast without a request or loading spinner). **SERVER UNREACHABLE** means the app was loaded from cache but its origin cannot be reached; external weather APIs might still work, so the buttons remain enabled. When online and the origin check has not failed, the regular theme is used without a connection banner. `navigator.onLine` and origin reachability are only indicators, not guarantees that every weather provider is available. Offline city lookup and Find me do not make network requests; Find me reuses the saved location.
 
 ## Offline cache and privacy
 
