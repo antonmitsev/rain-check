@@ -63,7 +63,7 @@ This is a simple product heuristic, not a validated meteorological nowcasting te
 
 ## Build identification
 
-The custom Vite plugin in `vite.config.js` emits `version.json` into the production bundle at build time. This static file contains the semantic version from `package.json`, the UTC build timestamp, and Git HEAD or CI-provided SHA when available. No server-side runtime is needed. The service worker does not cache this endpoint.
+The custom Vite plugin in `vite.config.js` emits `version.json` into the production bundle at build time. This static file contains the semantic version from `package.json`, the UTC build timestamp, and Git HEAD or CI-provided SHA when available. No server-side runtime is needed. The service worker bypasses its cache for this endpoint. The header fetches `version.json` with `cache: no-store` and displays the semantic version and seven-character commit hash. If the commit is missing, the badge shows only the version; if the request fails, the existing fallback badge remains.
 
 ## PWA architecture
 
