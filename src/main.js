@@ -35,8 +35,23 @@ app.innerHTML = `
   </section>
   <div class="actions"><button id="check" class="action" type="button"><span class="action-symbol">☔</span><span>Check weather</span><small>Current conditions & next change</small></button></div>
   <section id="weather-results" class="weather-results" aria-live="polite">
-    <article class="weather-card neutral" id="current-card"><span class="weather-badge" id="current-badge">CURRENT</span><h2 id="current-title">Not checked yet</h2><p id="current-detail">Choose a location to check the weather.</p></article>
-    <article class="weather-card neutral" id="forecast-card"><span class="weather-badge" id="forecast-badge">FORECAST</span><h2 id="forecast-title">Waiting for data</h2><p id="forecast-detail">The next weather change will appear here.</p></article>
+    <article class="weather-summary neutral" id="summary-card" aria-label="Current rain and the next change">
+      <div class="summary-main">
+        <div class="summary-phase summary-current">
+          <span class="summary-overline">СЕГА</span>
+          <strong class="summary-headline" id="summary-now">—</strong>
+        </div>
+        <span class="summary-arrow" aria-hidden="true">→</span>
+        <div class="summary-phase summary-future">
+          <span class="summary-overline">ПРОГНОЗА</span>
+          <strong class="summary-headline summary-transition" id="summary-next">—</strong>
+          <strong class="summary-time" id="summary-time"></strong>
+          <span class="summary-day" id="summary-day"></span>
+        </div>
+      </div>
+      <p class="summary-detail" id="summary-detail">Choose a location and press Check weather.</p>
+      <p class="summary-meta" id="summary-meta">Forecast times are approximate.</p>
+    </article>
   </section>
   <section class="history" aria-label="Recent weather checks">
     <div class="history-heading"><h2>Recent checks</h2><small>Last 3 locations · saved on this device</small></div>
@@ -51,6 +66,7 @@ app.innerHTML = `
 // The toast is fixed-position and does not take up content height.
 const toast = document.querySelector('#toast');
 let toastTimer;
+let toastExitTimer;
 
 const versionBadge = document.querySelector('#app-version');
 const connectionBanner = document.querySelector('#connection-banner');
@@ -77,41 +93,82 @@ const suggestions = document.querySelector('#suggestions');
 const locateButton = document.querySelector('#locate');
 const cityForm = document.querySelector('#city-form');
 const actionButtons = [document.querySelector('#check')];
-const currentCard = document.querySelector('#current-card');
-const forecastCard = document.querySelector('#forecast-card');
+const summaryCard = document.querySelector('#summary-card');
+const summaryNow = document.querySelector('#summary-now');
+const summaryNext = document.querySelector('#summary-next');
+const summaryTime = document.querySelector('#summary-time');
+const summaryDay = document.querySelector('#summary-day');
+const summaryDetail = document.querySelector('#summary-detail');
+const summaryMeta = document.querySelector('#summary-meta');
 const historyList = document.querySelector('#history-list');
 
 function render(message, category = '') {
   clearTimeout(toastTimer);
-  toast.className = `toast ${category ? `toast--${category}` : ''}`;
+  clearTimeout(toastExitTimer);
+  const tone = category ? `toast--${category}` : '';
+  toast.className = `toast ${tone} toast--enter`;
   toast.setAttribute('role', category === 'error' ? 'alert' : 'status');
   toast.textContent = message;
   toast.hidden = false;
-  // Loading is also temporary, so a failed request cannot leave a permanent overlay.
-  toastTimer = setTimeout(() => { toast.hidden = true; },
-    category === 'error' || category === 'offline' ? 6500 : category === 'loading' ? 6000 : 3800);
-}
-function updateCard(card, badgeId, titleId, detailId, tone, badge, title, detail) {
-  card.className = `weather-card ${tone}`;
-  document.querySelector(badgeId).textContent = badge;
-  document.querySelector(titleId).textContent = title;
-  document.querySelector(detailId).textContent = detail;
+  const duration = category === 'error' || category === 'offline' ? 6500
+    : category === 'loading' ? 6000 : 3800;
+  toastTimer = setTimeout(() => {
+    toast.className = `toast ${tone} toast--exit`;
+    toastExitTimer = setTimeout(() => { toast.hidden = true; }, 400);
+  }, duration);
 }
 
-function displayWeather(raining, currentText, forecastText, { cached = false, savedAt = null } = {}) {
-  const currentTone = raining === true ? 'wet' : raining === false ? 'dry' : 'neutral';
-  const futureTone = raining === true ? 'dry' : raining === false ? 'wet' : 'neutral';
-  const prefix = cached ? 'SAVED ' : '';
-  updateCard(currentCard, '#current-badge', '#current-title', '#current-detail',
-    currentTone, prefix + (raining === true ? 'RAINING' : raining === false ? 'DRY' : 'UNKNOWN'),
-    raining === true ? 'It is raining' : raining === false ? 'It is not raining' : 'Conditions unavailable',
-    currentText);
-  updateCard(forecastCard, '#forecast-badge', '#forecast-title', '#forecast-detail',
-    futureTone, prefix + (raining === true ? 'WILL STOP' : raining === false ? 'WILL START' : 'FORECAST'),
-    raining === true ? 'When will it stop?' : raining === false ? 'When will it start?' : 'Forecast unavailable',
-    forecastText);
-  if (cached) render(`Saved weather from ${new Date(savedAt).toLocaleString('en-GB')}. Not live data.`, 'offline');
-  else render('Forecast checked. Times are approximate.', 'success');
+// Forecast strings are kept for small-print explanations and older offline snapshots.
+// Only a recognised, approximate time is promoted into the large headline.
+function forecastTimeParts(forecastText) {
+  const match = typeof forecastText === 'string'
+    ? forecastText.match(/around\s+(\d{2}:\d{2})(?:\s+(today|tomorrow)|\s+on\s+(\d{1,2}\s+[A-Za-z]{3}))?/i)
+    : null;
+  if (!match) return null;
+  return {
+    time: match[1],
+    day: match[2] === 'tomorrow' ? 'утре' : match[2] === 'today' ? 'днес' : (match[3] || '')
+  };
+}
+
+function clearWeatherSummary() {
+  summaryCard.className = 'weather-summary neutral';
+  summaryNow.textContent = '—';
+  summaryNext.textContent = '—';
+  summaryTime.textContent = '';
+  summaryDay.textContent = '';
+  summaryDetail.textContent = 'Choose a location and press Check weather.';
+  summaryMeta.textContent = 'Forecast times are approximate.';
+}
+
+function displayWeather(raining, forecastText, { cached = false, savedAt = null, observedAt = null } = {}) {
+  summaryCard.className = `weather-summary ${raining === true ? 'wet-to-dry' : raining === false ? 'dry-to-wet' : 'neutral'}`;
+  summaryNow.textContent = raining === true ? 'ВАЛИ' : raining === false ? 'СУХО' : 'НЕЯСНО';
+  const next = forecastTimeParts(forecastText);
+  if (raining !== null && next) {
+    summaryNext.textContent = raining ? 'СПИРА В' : 'ЗАПОЧВА В';
+    summaryTime.textContent = next.time;
+    summaryDay.textContent = next.day;
+  } else {
+    const noRain = raining === false && typeof forecastText === 'string'
+      && forecastText.includes('No rain is forecast');
+    summaryNext.textContent = noRain ? 'НЕ СЕ ОЧАКВА' : 'НЕЯСНО';
+    summaryTime.textContent = '';
+    summaryDay.textContent = '';
+  }
+  summaryDetail.textContent = forecastText || 'No reliable hourly forecast is available.';
+  const meta = [cached ? 'Saved forecast · not live' : 'Forecast · approximate'];
+  if (Number.isFinite(savedAt)) {
+    meta.push(`Fetched: ${new Date(savedAt).toLocaleString('en-GB', {
+      day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+    })}`);
+  }
+  if (typeof observedAt === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(observedAt)) {
+    meta.push(`Weather time: ${observedAt.replace('T', ' ')} (local)`);
+  }
+  summaryMeta.textContent = meta.join(' · ');
+  if (cached) render('Showing saved conditions. Not live weather.', 'offline');
+  else render('Forecast updated. Times are approximate.', 'success');
 }
 
 function setBusy(value) {
@@ -124,12 +181,12 @@ function setBusy(value) {
 }
 
 function displaySavedSnapshot(saved) {
-  const currentText = saved.raining === true ? 'Rain was recorded at the last check.'
-    : saved.raining === false ? 'No rain was recorded at the last check.' : 'Current rain data was unavailable.';
   const forecastText = saved.raining === true ? saved.stopForecast
     : saved.raining === false ? (saved.nextRainForecast || 'No saved start-time forecast is available.')
     : 'No reliable forecast is available.';
-  displayWeather(saved.raining, currentText, forecastText, { cached: true, savedAt: saved.savedAt });
+  displayWeather(saved.raining, forecastText, {
+    cached: true, savedAt: saved.savedAt, observedAt: saved.observedAt
+  });
 }
 
 function showSavedWeather(recordCheck = false) {
@@ -272,10 +329,7 @@ function setLocation(latitude, longitude, name, source = 'city') {
   status.textContent = source === 'gps' ? '✓ GPS location confirmed' : '✓ Location selected';
   cityInput.value = source === 'gps' ? '' : name;
   clearSuggestions();
-  updateCard(currentCard, '#current-badge', '#current-title', '#current-detail',
-    'neutral', 'CURRENT', 'Waiting for weather', 'Press Check weather to see the current conditions.');
-  updateCard(forecastCard, '#forecast-badge', '#forecast-title', '#forecast-detail',
-    'neutral', 'FORECAST', 'Waiting for forecast', 'The next change will appear here.');
+  clearWeatherSummary();
   if (!navigator.onLine) {
     showSavedWeather();
   } else {
@@ -515,13 +569,12 @@ async function ask() {
       return;
     }
     const raining = rainNow(data);
+    const saved = getWeatherSnapshot(selected);
     displayWeather(raining,
-      raining === true ? 'Rain is currently detected in this area.'
-        : raining === false ? 'No rain is currently detected in this area.'
-        : 'Current rainfall data is unavailable.',
       raining === true ? rainUntil(data)
         : raining === false ? rainStarts(data)
-        : 'Current conditions are uncertain.');
+        : 'Current conditions are uncertain.',
+      { savedAt: saved?.savedAt ?? null, observedAt: data.current?.time });
     // Only explicit checks create history; silent location prefetch does not.
     const snapshot = getWeatherSnapshot(selected);
     if (snapshot) {
