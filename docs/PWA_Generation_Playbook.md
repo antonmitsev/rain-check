@@ -174,7 +174,29 @@ Width `100%` and `max-width` must apply to the actual shell; descendants must no
 
 For a two-phase summary, use `grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr)`; let text wrap at intentional word boundaries, and use typography that fits the actual phone width. Avoid fixed widths for form controls when they share a row.
 
-### 2.3 Mobile typography and tagline composition
+### 2.3 Landscape layout as a separate composition
+
+A portrait utility can be intentionally narrow (**e.g., 580px max-width**) while its wide landscape composition deserves more space (**e.g., 920px max-width**). Do not simply stretch the stacked portrait cards across a laptop screen.
+
+For sufficiently wide **landscape** screens, use a two-column content workspace: **input/search on the left; the primary action and main result on the right**, with optional history below. Use a viewport-width threshold, not `orientation` alone: a small rotated phone can remain stacked if two columns would crowd the controls. Example pattern:
+
+```css
+.workspace { min-width: 0; }
+.workspace__result { min-width: 0; }
+@media (orientation: landscape) and (min-width: 740px) {
+  .shell { max-width: 920px; }
+  .workspace {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+    gap: 20px;
+  }
+  .workspace__result { display: flex; flex-direction: column; gap: 12px; }
+}
+```
+
+Align columns at the top, preserve tappable controls, permit vertical scrolling when landscape height is small, and respect `env(safe-area-inset-left/right)` for notched devices. Keep major workflow order the same in DOM/source order (search → check → result). Adapt recent-history cards only if labels remain legible.
+
+### 2.4 Mobile typography and tagline composition
 
 - Start with the physical viewport, safe areas, and actual device font rendering. A desktop browser resized to 390 CSS pixels is helpful but not equivalent to Mobile Safari.
 - Keep headline emphasis strong, but allow sensible wrapping. `white-space: nowrap` on a long H1 may break the layout; remove it on narrow widths.
@@ -194,7 +216,7 @@ For a two-phase summary, use `grid-template-columns: minmax(0, 1fr) auto minmax(
 
 If even one group cannot fit a very narrow device, shorten the actual copy (or add a genuinely compact variant) rather than forcing overflow.
 
-### 2.4 Spacing: compact *inside*, airy *outside*
+### 2.5 Spacing: compact *inside*, airy *outside*
 
 - Use a consistent spacing scale, e.g. `4, 8, 12, 16, 24, 32` CSS pixels.
 - Controls and informational cards should have efficient internal padding (often 10–16px), without unexplained blank vertical zones.
@@ -203,7 +225,7 @@ If even one group cannot fit a very narrow device, shorten the actual copy (or a
 - Do not put a separate large card around a tiny status or a permanent Answer panel merely to display occasional feedback.
 - Ensure cards remain readable in both light and dark themes. Contrast and legibility take precedence over decorative gradients.
 
-### 2.5 Semantic and accessible structure
+### 2.6 Semantic and accessible structure
 
 - One meaningful `<h1>`; section headings follow a sensible order.
 - Use `<button>` for actions and `<a>` for navigation.
@@ -503,7 +525,7 @@ Provide genuinely maskable assets before declaring `purpose: "maskable"`. Do not
 
 - `<meta name="viewport" content="width=device-width,initial-scale=1">`
 - `<meta name="theme-color" content="...">`
-- Manifest link, favicon, Apple touch icon, description, and meaningful title.
+- Manifest link, favicon, **an explicit opaque 180×180 PNG Apple touch icon**, description, and meaningful title. Do not rely solely on the web manifest for iOS Home Screen artwork. Keep HTML icon paths and precache entries aligned with real build files. See [Appendix E](playbook/appendix-e-ux-design-system.md#e7-pwa-icon-contract-especially-ios-safari).
 - Optional Apple mobile web app metadata where applicable.
 - Use safe-area insets for fixed/floating controls and status bars.
 - Keep the real PWA theme color synchronized with significant visual state changes where appropriate.
@@ -675,6 +697,7 @@ This is a **verification checklist**, not a claim that anything has been execute
 - [ ] Root → app → shell → each section has an intentional width contract.
 - [ ] Desktop app column remains centered and appropriately capped.
 - [ ] No horizontal scrolling on representative compact phones, including the target iPhone dimensions.
+- [ ] Landscape at a sufficiently wide viewport uses side-by-side search/input and primary action/result with a justified larger max-width; rotated narrow screens remain readable in one column.
 - [ ] Long place names, timestamps, version hashes, and metadata do not expand the page.
 - [ ] Form input shrinks next to its button without overflow.
 - [ ] Headlines and grouped taglines wrap only at useful boundaries.
@@ -699,6 +722,7 @@ This is a **verification checklist**, not a claim that anything has been execute
 ### 11.4 Installation, updates, hosting
 
 - [ ] Manifest, HTTPS, valid 192/512 icons, and correct scope/start URL.
+- [ ] A dedicated opaque 180×180 Apple touch PNG is referenced in HTML, included in the full build/precache, and can replace an older iOS monogram shortcut after removing/re-adding it.
 - [ ] iOS Safari **Share → Add to Home Screen** guidance works for target iOS/browser.
 - [ ] Proper standalone appearance, safe areas, and icon fit on installed PWA.
 - [ ] Production SW precaches the complete app shell, not only HTML.
@@ -731,6 +755,8 @@ This is a **verification checklist**, not a claim that anything has been execute
 | `overflow-x: hidden` on page | Hides the width bug; may clip UI | Fix min-content and flex/grid constraints |
 | `max-width:100%` overriding desktop cap | Makes design stretch across desktop | Explicit `width:100%; max-width:<intended cap>` |
 | Long nowrap tagline/heading | Orphaned words or horizontal overflow | Shorter grouped copy with intentional wrapping |
+| Manifest-only app icon | iOS Home Screen may display a letter | Build and link a dedicated 180px opaque PNG Apple touch icon |
+| Portrait column stretched across landscape | Wastes horizontal space while forcing scroll | Wide-but-capped two-column search/result workspace at a deliberate breakpoint |
 | Old SW caches only `index.html` | Blank offline screen when JS chunks are unavailable | Full hashed-asset precache during install |
 | Same SW cache ID for every build | Old assets persist | Build-specific worker bytes and cache name |
 | Clearing site data to receive updates | Deletes user's local results/history | Update lifecycle + no-store metadata headers |
@@ -823,6 +849,7 @@ Non-negotiable UX:
 - Display compact freshness metadata and explicitly label cached data.
 - Hide empty secondary sections.
 - Compact padding inside cards/buttons; breathing room between sections.
+- Landscape breakpoint with input/search left and action/result right when space allows.
 - A responsive centered shell with width:100%, a justified max-width,
   border-box sizing, and min-width:0 throughout necessary flex/grid children.
 - No horizontal scrolling on mobile and no overflow-x:hidden workaround.
@@ -832,7 +859,7 @@ Non-negotiable UX:
 - Footer sits at the bottom of short pages without overlapping long pages.
 
 Non-negotiable engineering:
-- Production HTTPS, manifest, actual install icons, correct scope/base path.
+- Production HTTPS, manifest, opaque 180px iOS Apple touch PNG plus 192/512px PWA icons, correct scope/base path.
 - Service worker precaches the whole built app shell (including hashed JS/CSS).
 - Versioned build/cache, network-first HTML fallback offline, correct update
   lifecycle, cache headers that prevent stale deployments.
