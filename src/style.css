@@ -128,3 +128,8 @@ body.offline-mode{background:radial-gradient(circle at 80% 0%,#4a3931 0,transpar
 .history-remove:focus-visible{outline:2px solid #7fbdfd;outline-offset:2px}
 .offline-mode .history-remove{background:#30282a;border-color:#655047;color:#e5c0a1}
 @media(max-width:440px){.history-entry{grid-template-columns:minmax(0,1fr) 30px;gap:5px}.history-remove{width:30px;height:30px}.history-item-details{flex-wrap:wrap}.history-summary{flex-basis:100%}}
+
+/* Keep the history header and implicit grid tracks from exceeding narrow screens. */
+.history-list{grid-template-columns:minmax(0,1fr)}
+.history-heading{min-width:0;max-width:100%;flex-wrap:wrap}
+.history-heading small{min-width:0;overflow-wrap:anywhere}
