@@ -14,7 +14,7 @@ function readStore(storage) {
         history: Array.isArray(parsed.history) ? parsed.history : [] }
       : { schema: 1, lastLocation: null, snapshots: {}, history: [] };
   } catch {
-    return { schema: 1, lastLocation: null, snapshots: {} };
+    return { schema: 1, lastLocation: null, snapshots: {}, history: [] };
   }
 }
 
