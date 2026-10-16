@@ -5,7 +5,7 @@ A minimal weather app answering two questions: **"Is it raining?"** and **"When 
 ## Features
 
 - Automatically requests browser geolocation at startup (subject to browser permission); manual city search remains available if location access fails.
-- **Is it raining?** — current precipitation estimates for the selected area.
+- **Is it raining?** — reports current rain; if it is dry, estimates when the next rain or showers are expected from the hourly forecast (or explains when none is forecast).
 - **When will it stop raining?** — approximate stop time from an hourly forecast.
 - Open-Meteo API, 10-minute in-memory cache, no user accounts, backend, database, or AI service.
 - Responsive interface; deployable as a static website on Apache/cPanel.
@@ -38,7 +38,7 @@ The banner responds to browser online/offline events and checks the app server o
 
 ## Offline cache and privacy
 
-Forecasts are silently prefetched after successful location selection and saved to browser `localStorage` following successful Open-Meteo requests. The last selected location and up to eight compact weather snapshots are kept on the device; coordinates are rounded to three decimal places before storage. Cached reports show the time the forecast was saved and, where provided, the Open-Meteo observation time. Cached rain-stop predictions describe the forecast **as it was at the saved time**.
+Forecasts are silently prefetched after successful location selection and saved to browser `localStorage` following successful Open-Meteo requests. The last selected location and up to eight compact weather snapshots are kept on the device; coordinates are rounded to three decimal places before storage. Cached reports show the time the forecast was saved and, where provided, the Open-Meteo observation time. For dry weather, the cached response also retains the next predicted rain onset with an explicit calendar date, so offline `today`/`tomorrow` cannot become misleading. Cached rain-stop predictions describe the forecast **as it was at the saved time**.
 
 If no snapshot exists, the app immediately explains that an online visit is required. Offline mode never requests GPS, reverse geocoding, weather, or city suggestions, never shows a loading spinner, and leaves the two weather buttons clickable. Clear browser site data to delete the saved location and snapshots.
 
