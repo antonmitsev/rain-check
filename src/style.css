@@ -36,26 +36,31 @@ body.offline-mode{background:radial-gradient(circle at 80% 0%,#4a3931 0,transpar
 @media(prefers-reduced-motion:reduce){body{transition:none}}
 
 
-/* One action, two independent state cards. Dry is yellow; wet is blue. */
+/* One large weather-change summary: dry -> wet (yellow -> blue), or wet -> dry. */
 .actions{display:block;margin:20px 0 14px}
 .actions .action{width:100%;min-height:70px;flex-direction:row;align-items:center;gap:12px;padding:15px 20px;font-size:20px}
 .actions .action-symbol{margin:0;font-size:27px}
 .actions .action small{margin:0 0 0 auto;text-align:right}
-.weather-results{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
-.weather-card{border-radius:16px;border:1px solid;min-height:160px;padding:18px 15px}
-.weather-card h2{font:700 20px/1.2 Outfit,sans-serif;margin:17px 0 9px}
-.weather-card p{font-size:13px;line-height:1.5;margin:0}
-.weather-badge{display:inline-block;padding:5px 9px;border-radius:50px;font-size:10px;letter-spacing:1px;font-weight:800}
-.weather-card.dry{background:#382f15;border-color:#a98733;color:#ffe3a2}
-.weather-card.dry .weather-badge{color:#34270a;background:#f5c85a}
-.weather-card.wet{background:#142e47;border-color:#488aca;color:#daeeff}
-.weather-card.wet .weather-badge{color:#092d50;background:#79c3ff}
-.weather-card.neutral{background:#17273b;border-color:#334860;color:#cedbe8}
-.weather-card.neutral .weather-badge{background:#60758c;color:#fff}
-.offline-mode .weather-card.dry{background:#382f15;border-color:#a98733}
-.offline-mode .weather-card.wet{background:#142e47;border-color:#488aca}
-@media(max-width:440px){.weather-results{grid-template-columns:1fr}.weather-card{min-height:120px}.actions .action{flex-wrap:wrap}.actions .action small{margin-left:0;width:100%;text-align:left;padding-left:40px}}
-
+.weather-results{margin-bottom:14px}
+.weather-summary{border:1px solid #43617d;border-radius:18px;padding:17px;overflow:hidden;color:#f0f4fa;background:#20354b}
+.weather-summary.wet-to-dry{border-color:#6b91a9;background:linear-gradient(105deg,#14578e 0%,#237bb1 39%,#b7a15f 61%,#f3ca64 100%)}
+.weather-summary.dry-to-wet{border-color:#a28d55;background:linear-gradient(105deg,#f3ca64 0%,#baa35e 39%,#237bb1 61%,#14578e 100%)}
+.summary-main{display:grid;grid-template-columns:minmax(0,1fr) 25px minmax(0,1fr);align-items:center;gap:6px;min-height:142px}
+.summary-phase{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;min-width:0}
+.summary-future{align-items:flex-end;text-align:right}
+.summary-overline{font-size:10px;font-weight:800;letter-spacing:1.3px;margin-bottom:8px}
+.summary-headline{font:800 clamp(29px,7.2vw,49px)/1.04 Outfit,sans-serif;letter-spacing:.5px;overflow-wrap:anywhere}
+.summary-transition{font-size:clamp(19px,5vw,27px);line-height:1.12}
+.summary-time{font:800 clamp(29px,7vw,45px)/1.05 Outfit,sans-serif;letter-spacing:.2px;margin-top:3px}
+.summary-day{font-size:13px;font-weight:700;margin-top:4px}
+.summary-arrow{font-size:22px;font-weight:800;text-align:center;opacity:.85}
+.wet-to-dry .summary-current,.dry-to-wet .summary-future{color:#fff}
+.wet-to-dry .summary-future,.dry-to-wet .summary-current{color:#251e0d}
+.neutral .summary-phase{color:#e0e8f1}
+.summary-detail,.summary-meta{background:#0b1a2ad9;color:#e0ebf6;border-radius:9px;margin:8px 0 0;padding:9px 11px;font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+.summary-meta{font-size:10px;color:#b9cfe2;margin-top:4px;padding-top:7px;padding-bottom:7px}
+@media(max-width:440px){.actions .action{flex-wrap:wrap}.actions .action small{margin-left:0;width:100%;text-align:left;padding-left:40px}.weather-summary{padding:13px}.summary-main{grid-template-columns:minmax(0,1fr) 18px minmax(0,1fr);gap:4px;min-height:125px}.summary-arrow{font-size:17px}}
+@media(max-width:350px){.summary-headline{font-size:27px}.summary-transition{font-size:18px}.summary-time{font-size:28px}}
 
 /* Recent checks are local, tappable snapshots; opening one never fetches weather. */
 .history{margin-top:24px}
@@ -90,3 +95,20 @@ body.offline-mode{background:radial-gradient(circle at 80% 0%,#4a3931 0,transpar
 .toast--loading{border-color:#507faa;background:#183c5d;color:#d6efff}
 .toast--offline{border-color:#a98733;background:#45351e;color:#ffe3ae}
 .toast--error{border-color:#c47c7c;background:#4c262b;color:#ffe0e0}
+
+/* Sticky-bottom layout without covering the content or using fixed positioning. */
+.shell{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column}
+.shell>footer{margin-top:auto;padding-top:26px}
+
+/* Toast slides down from above; on expiry it slides out to the left. */
+.toast--enter{animation:toast-slide-down .36s cubic-bezier(.21,.9,.27,1) both}
+.toast--exit{animation:toast-slide-left .38s ease-in both}
+@keyframes toast-slide-down{
+  from{opacity:0;transform:translate(-50%,calc(-100% - 32px))}
+  to{opacity:1;transform:translate(-50%,0)}
+}
+@keyframes toast-slide-left{
+  from{opacity:1;transform:translate(-50%,0)}
+  to{opacity:0;transform:translate(calc(-50% - 100vw),0)}
+}
+@media(prefers-reduced-motion:reduce){.toast--enter,.toast--exit{animation:none}}
