@@ -37,6 +37,8 @@ The browser's `online` and `offline` events update the warning state immediately
 
 RainCheck shows up to **three** most recent distinct locations that were explicitly checked using **Check weather**, with their last check time and wet/dry status. Repeating a check for the same rounded coordinates replaces its older entry and moves it to the top. The entries are stored in the existing localStorage store (`raincheck:offline:v1`) and remain visible after offline restart.
 
+History rows stay inside the mobile viewport, wrap long names and forecasts, and include a small × button for removing a single row. Removal changes only the localStorage history, not forecast snapshots, and uses no network requests.
+
 Selecting a history item displays the snapshot captured on its last check, with a clearly marked saved timestamp. It **never** makes an API request, runs GPS, shows a loader, or changes the order of history, even while online. Silent weather prefetch and location selection alone do not create history entries. The full weather snapshot store still keeps up to eight locations independently of the three visible recent checks.
 
 ## Offline behavior
@@ -55,9 +57,13 @@ Production builds include a static `version.json` endpoint (see [deployment guid
 
 ## Update behavior
 
-Each production build embeds its own version and UTC timestamp into the service worker cache name. This forces a new installation, precaches new assets, and retires older RainCheck caches. No manual cache version bump is needed. HTML navigation uses the network when online and falls back to the cached shell offline.
+Every production build embeds a unique build identity in `sw.js` and generates a fresh `precache-manifest.json` listing hashed bundles. Installation bypasses the browser HTTP cache and finishes precaching before the new worker activates. Navigation uses a network-first request that bypasses the browser HTTP cache, retaining the cached app as an offline fallback.
 
-After deployment, revisit/reload the page online to acquire updated assets. Browser cache and service-worker updates can make deployment visibility asynchronous.
+The production app registers with `updateViaCache: 'none'`, explicitly checks for worker updates on load, focus, tab visibility restoration and reconnection, then **reloads an already-controlled online tab once when `controllerchange` fires**. A first-ever service worker installation does not force a refresh. If activation happens offline, the refresh is deferred until the device is online.
+
+`public/.htaccess` adds `Cache-Control: no-store, max-age=0` for `index.html`, `sw.js`, `version.json`, `precache-manifest.json`, and the web manifest. Because Vite output asset filenames are content-hashed, regular asset caching remains safe. For CDN hosting, purge the CDN cache if the origin's headers are ignored. Upload all of `dist/` before opening the app to avoid incomplete worker installs.
+
+**One-time migration:** An older page that is already running a JavaScript bundle without the `controllerchange` listener cannot reload itself automatically. Reload that old installation online once; subsequent deployments will use the new update lifecycle. No need to delete localStorage, weather history, or the installed PWA.
 
 ## Deployment checklist
 
