@@ -6,11 +6,12 @@ RainCheck is an installable Progressive Web App (PWA) built with Vite and vanill
 
 - `public/manifest.webmanifest`: application name, relative scope/start URL, standalone mode, theme, and 192×192/512×512 PNG icons.
 - `public/icons/`: home-screen icons.
-- `public/sw.js`: service worker providing a cached offline app shell and static asset caching.
+- `public/sw.js`: production service worker with build-specific cache identity and complete app-shell precaching.
+- `scripts/prepare-pwa.mjs`: postbuild script that lists hashed `dist/assets/` files, generates `dist/precache-manifest.json`, and embeds the build ID in `dist/sw.js`.
 - `index.html`: manifest, favicon, Apple touch icon, and mobile metadata.
 - `src/main.js`: registers the service worker after page load.
 
-Files under `public/` are copied to the root of `dist/` by Vite.
+Files under `public/` are copied to `dist/` by Vite. `npm run build` runs `vite build && node scripts/prepare-pwa.mjs`. Running `vite build` alone does not finish PWA packaging. The development server does not register the service worker.
 
 ## Installation
 
@@ -24,7 +25,7 @@ Install prompts are browser-dependent. RainCheck does not display a custom insta
 
 ## Offline behavior
 
-The service worker caches the application shell and the local static assets after they have been loaded at least once. After a successful online visit, the installed application can open offline.
+During installation, the service worker reads `precache-manifest.json` and caches HTML, icons, the manifest, and **all hashed production JavaScript/CSS assets** before activating. Once installation has finished and the page has been reloaded online, the PWA can launch offline without missing scripts.
 
 **No offline weather forecasts are promised.** Live rain status, city search, reverse geocoding, and fresh forecasts all use third-party APIs, which require an internet connection. An offline forecast request displays an error. External Google Fonts may be unavailable offline; system font fallbacks are provided.
 
@@ -36,18 +37,23 @@ Production builds include a static `version.json` endpoint (see [deployment guid
 
 ## Update behavior
 
-The app shell and assets are cached under a versioned cache name. New static assets are downloaded when requested. For future service worker changes, increment `CACHE_NAME` in `public/sw.js` to retire older caches. Navigation uses the network when available, with the cached app shell as a fallback.
+Each production build embeds its own version and UTC timestamp into the service worker cache name. This forces a new installation, precaches new assets, and retires older RainCheck caches. No manual cache version bump is needed. HTML navigation uses the network when online and falls back to the cached shell offline.
 
 After deployment, revisit/reload the page online to acquire updated assets. Browser cache and service-worker updates can make deployment visibility asynchronous.
 
 ## Deployment checklist
 
-- [ ] `npm run build` succeeds.
+- [ ] `npm run build` succeeds and generates `dist/precache-manifest.json`.
+- [ ] `dist/sw.js` has a build-specific cache name with no `__CACHE_VERSION__` placeholder.
+- [ ] All JS and CSS files in `dist/assets/` appear in `precache-manifest.json`.
 - [ ] HTTPS works.
 - [ ] `index.html`, `manifest.webmanifest`, `sw.js`, `icons/icon-192.png`, `icons/icon-512.png`, and `assets/` are present in Document Root.
 - [ ] In DevTools → Application → Manifest, the icon and manifest are detected.
 - [ ] In DevTools → Application → Service Workers, the worker is active and controls the page after reload.
-- [ ] The app opens with network disabled after the first online load.
+- [ ] Run `npm run build && npm run preview`, open the app online, wait until the service worker activates, and reload online.
+- [ ] In DevTools → Application → Cache Storage, verify the JavaScript and CSS files are cached.
+- [ ] Set DevTools → Network to Offline (or stop the preview server) and reload: the UI must render.
+- [ ] Do not use `npm run dev` as an offline test; Vite development modules need a running server.
 - [ ] Both weather buttons report network failure offline rather than presenting stale data as live information.
 - [ ] Test installability on the actual target device/browser.
 
