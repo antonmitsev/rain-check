@@ -265,3 +265,11 @@ locateButton.addEventListener('click', locate);
 cityForm.addEventListener('submit', chooseCity);
 actionButtons[0].addEventListener('click', () => ask('now'));
 actionButtons[1].addEventListener('click', () => ask('until'));
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(error => {
+      console.warn('Service worker registration failed:', error);
+    });
+  });
+}
