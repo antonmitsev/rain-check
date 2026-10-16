@@ -37,3 +37,23 @@ body.offline-mode{background:radial-gradient(circle at 80% 0%,#4a3931 0,transpar
 
 /* Cached forecasts remain actionable offline; no disabled-state styling is needed. */
 .answer.offline{border-color:#bd8959;color:#ffe0b3}
+
+/* One action, two independent state cards. Dry is yellow; wet is blue. */
+.actions{display:block;margin:20px 0 14px}
+.actions .action{width:100%;min-height:70px;flex-direction:row;align-items:center;gap:12px;padding:15px 20px;font-size:20px}
+.actions .action-symbol{margin:0;font-size:27px}
+.actions .action small{margin:0 0 0 auto;text-align:right}
+.weather-results{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.weather-card{border-radius:16px;border:1px solid;min-height:160px;padding:18px 15px}
+.weather-card h2{font:700 20px/1.2 Outfit,sans-serif;margin:17px 0 9px}
+.weather-card p{font-size:13px;line-height:1.5;margin:0}
+.weather-badge{display:inline-block;padding:5px 9px;border-radius:50px;font-size:10px;letter-spacing:1px;font-weight:800}
+.weather-card.dry{background:#382f15;border-color:#a98733;color:#ffe3a2}
+.weather-card.dry .weather-badge{color:#34270a;background:#f5c85a}
+.weather-card.wet{background:#142e47;border-color:#488aca;color:#daeeff}
+.weather-card.wet .weather-badge{color:#092d50;background:#79c3ff}
+.weather-card.neutral{background:#17273b;border-color:#334860;color:#cedbe8}
+.weather-card.neutral .weather-badge{background:#60758c;color:#fff}
+.offline-mode .weather-card.dry{background:#382f15;border-color:#a98733}
+.offline-mode .weather-card.wet{background:#142e47;border-color:#488aca}
+@media(max-width:440px){.weather-results{grid-template-columns:1fr}.weather-card{min-height:120px}.actions .action{flex-wrap:wrap}.actions .action small{margin-left:0;width:100%;text-align:left;padding-left:40px}}
