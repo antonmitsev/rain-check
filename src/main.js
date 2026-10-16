@@ -287,9 +287,16 @@ actionButtons[1].addEventListener('click', () => ask('until'));
 void locate();
 
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').catch(error => {
-      console.warn('Service worker registration failed:', error);
+  if (import.meta.env.PROD) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').catch(error => {
+        console.warn('Service worker registration failed:', error);
+      });
     });
-  });
+  } else {
+    // Vite dev modules are not an offline build. Remove stale workers on this origin.
+    navigator.serviceWorker.getRegistration('./')
+      .then(registration => registration?.unregister())
+      .catch(error => console.warn('Could not unregister development service worker:', error));
+  }
 }
