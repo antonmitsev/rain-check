@@ -21,6 +21,7 @@ const reverseCache = new Map();
 
 app.innerHTML = `
 <section class="shell">
+  <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true" hidden></div>
   <header><div class="brand"><span class="brand-icon" aria-hidden="true">☁</span> RainCheck</div><span class="version" id="app-version" title="Application build">v0.1</span></header>
   <div class="connection-banner" id="connection-banner" role="status" aria-live="polite" hidden>
     <span class="connection-dot" aria-hidden="true"></span>
@@ -47,15 +48,8 @@ app.innerHTML = `
   </footer>
 </section>`;
 
-// Toast notifications do not reserve space between forecast cards and recent checks.
-const toast = document.createElement('div');
-toast.id = 'toast';
-toast.className = 'toast';
-toast.setAttribute('role', 'status');
-toast.setAttribute('aria-live', 'polite');
-toast.setAttribute('aria-atomic', 'true');
-toast.hidden = true;
-document.body.append(toast);
+// The toast is fixed-position and does not take up content height.
+const toast = document.querySelector('#toast');
 let toastTimer;
 
 const versionBadge = document.querySelector('#app-version');
