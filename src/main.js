@@ -22,7 +22,7 @@ app.innerHTML = `
   </section>
   <div class="actions"><button id="now" class="action" type="button"><span class="action-symbol">☔</span><span>Is it raining?</span><small>Right now</small></button><button id="until" class="action" type="button"><span class="action-symbol">◷</span><span>When will it stop?</span><small>Next few hours</small></button></div>
   <section id="answer" class="answer" aria-live="polite" role="status"><span class="answer-label">ANSWER</span><p>Choose a location and click a button.</p></section>
-  <footer>Weather data: <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a> · Local conditions may differ.</footer>
+  <footer>Weather data: <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a> · Location names: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap contributors</a> · Local conditions may differ.</footer>
 </section>`;
 
 const place = document.querySelector('#place');
@@ -46,6 +46,8 @@ function setBusy(value) {
   [...actionButtons, locateButton, cityForm.querySelector('button')].forEach(b => b.disabled = value);
 }
 function setLocation(latitude, longitude, name, source = 'city') {
+  clearTimeout(suggestionTimer);
+  suggestionController?.abort();
   location = {latitude, longitude, name};
   place.textContent = name;
   status.textContent = source === 'gps' ? '✓ GPS location confirmed' : '✓ Location selected';
