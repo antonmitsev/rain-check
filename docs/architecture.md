@@ -37,6 +37,8 @@ Manual city searches use Open-Meteo Geocoding API. Suggestions start after 3 cha
 
 ## Unified weather UI
 
+The hero displays the combined eyebrow text `RAIN AT A GLANCE | TWO QUESTIONS. SHORT ANSWERS. NO SIGN-UP.` above a compact, slightly letter-spaced single-line heading. There is no separate hero paragraph. The permanent Answer/Status card has been removed: the existing `render(message, category)` helper now updates a top-positioned ARIA live-region toast, auto-dismissed after a brief delay (longer for errors and offline messages). Notifications float over the viewport and do not push weather cards or history down.
+
 The single **Check weather** action obtains one Open-Meteo response, then populates two cards: current rain state (blue wet / yellow dry) and forecast next change (yellow **Will stop** when currently raining / blue **Will start** when currently dry). Badge background colors match each card. Unknown data uses neutral styling. The two cards are also populated from a saved localStorage snapshot offline; cached readings are clearly labeled as saved rather than live.
 
 ## Answer algorithm
@@ -91,7 +93,7 @@ The custom Vite plugin in `vite.config.js` emits `version.json` into the product
 
 ## Connectivity state
 
-A persistent UI banner and CSS theme are controlled by browser `online`/`offline` events and `navigator.onLine`. Device offline mode bypasses live requests but leaves cached-weather actions responsive and shows a warm warning theme. An additional network-only request to `version.json` checks the app origin on production startup, focus, and tab visibility restoration. A failed origin request is displayed as **SERVER UNREACHABLE** (same warning theme), but does not disable external weather APIs because they may remain available independently. The check is not run in Vite development mode. Origin reachability is an indicator, not definitive proof that Open-Meteo is available.
+A connectivity warning banner (hidden while online) and CSS theme are controlled by browser `online`/`offline` events and `navigator.onLine`. Device offline mode bypasses live requests but leaves cached-weather actions responsive and shows a warm warning theme. An additional network-only request to `version.json` checks the app origin on production startup, focus, and tab visibility restoration. A failed origin request is displayed as **SERVER UNREACHABLE** (same warning theme), but does not disable external weather APIs because they may remain available independently. The check is not run in Vite development mode. Origin reachability is an indicator, not definitive proof that Open-Meteo is available.
 
 ## PWA architecture
 
