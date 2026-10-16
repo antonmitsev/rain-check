@@ -21,7 +21,9 @@ const required = [
   'sw.js',
   'version.json',
   'icons/icon-192.png',
-  'icons/icon-512.png'
+  'icons/icon-512.png',
+  'icons/apple-touch-icon.png',
+  'icons/favicon-32.png'
 ];
 
 for (const file of required) {
@@ -48,6 +50,7 @@ await writeFile(swPath, serviceWorker.replaceAll('__CACHE_VERSION__', cacheVersi
 
 // The entire app shell is cached on SW install, not lazily on the second visit.
 const precache = ['index.html', 'manifest.webmanifest',
-  'icons/icon-192.png', 'icons/icon-512.png', ...assets.sort()];
+  'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png',
+  'icons/favicon-32.png', ...assets.sort()];
 await writeFile(join(dist, 'precache-manifest.json'), JSON.stringify(precache, null, 2) + '\n');
 console.log(`PWA precache prepared: ${precache.length} files; cache ${cacheVersion}`);
