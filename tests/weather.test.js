@@ -40,6 +40,12 @@ test('the next calendar day is shown as tomorrow', () => {
   assert.match(rainStarts(data), /02:00 tomorrow/);
 });
 
+test('saved offline predictions have absolute dates, even when the forecast is for today', () => {
+  const data = forecast({ rain: [0, 0, 0, 0, 0.5] });
+  assert.match(rainStarts(data, { absoluteDate: true }), /16:00 on 16 Oct/);
+  assert.doesNotMatch(rainStarts(data, { absoluteDate: true }), /today|tomorrow/);
+});
+
 test('later dates are labeled explicitly', () => {
   const data = forecast({
     currentValues: { time: '2026-10-16T23:15' },
