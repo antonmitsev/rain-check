@@ -1,56 +1,56 @@
-# RainCheck — MVP спецификация v0.1
+# RainCheck — MVP Requirements v0.1
 
-## 1. Обхват
+## 1. Scope
 
-Една страница с индикация за локация, два бутона и поле за кратък отговор. Цел: максимално евтини и ясни отговори за валежите близо до потребителя.
+A single-page application showing the selected location, two action buttons, and a concise weather response. The goal is to answer nearby rainfall questions clearly and at minimal cost.
 
-## 2. Потребителски поток
+## 2. User flow
 
-1. Потребителят отваря страницата по HTTPS.
-2. Приложението иска разрешение за локация при първо използване (или при натискане на бутон).
-3. При отказ се предлага ръчен избор/въвеждане на населено място с геокодиране.
-4. Потребителят натиска **„Вали ли?“** или **„Докога ще вали?“**.
-5. Приложението зарежда метеорологичните данни (или ползва валиден кеш) и показва кратък отговор на български.
+1. The user opens the page over HTTPS.
+2. The user grants geolocation permission when selecting **Find my location**.
+3. If permission is denied or geolocation is unavailable, the user can search for a city instead.
+4. The user clicks **Is it raining?** or **When will it stop raining?**.
+5. The application fetches weather data (or uses a valid cached response) and displays a concise answer in English.
 
-## 3. Функционални изисквания
+## 3. Functional requirements
 
-| ID | Изискване | Критерий |
+| ID | Requirement | Acceptance criterion |
 | --- | --- | --- |
-| F01 | Локация | При дадено разрешение се получават ширина и дължина. |
-| F02 | Резервен избор на град | При отказано разрешение приложението продължава да работи с ръчно избрано място. |
-| F03 | „Вали ли?“ | Показва текущите данни за дъжд/превалявания; не представя прогноза като наблюдение на място. |
-| F04 | „Докога ще вали?“ | Оценява ориентировъчен край на валежа по наличната прогноза. |
-| F05 | Български отговор | Отговорите са кратки, разбираеми и съдържат приблизителен час само при достатъчно данни. |
-| F06 | Кеш | Данните се кешират до 10 минути по координати. |
-| F07 | Грешки | Ясно съобщение при липса на връзка, отказана локация или липсваща прогноза. |
+| F01 | Geolocation | Obtain latitude and longitude after permission is granted. |
+| F02 | Manual city fallback | A city search works when geolocation is blocked or unavailable. |
+| F03 | Is it raining? | Display current estimated rainfall conditions without presenting forecast values as on-site measurements. |
+| F04 | When will it stop raining? | Estimate an approximate stop time using the hourly forecast. |
+| F05 | English responses | Responses are brief and do not claim exact stop times. |
+| F06 | Weather cache | Cache responses by approximate coordinates for up to 10 minutes. |
+| F07 | Error handling | Explain network, geolocation, and unavailable-data failures. |
 
-## 4. Нефункционални изисквания
+## 4. Non-functional requirements
 
-- Responsive UI за мобилни устройства и десктоп.
-- HTTPS за геолокация в браузъра (localhost е изключение за разработка).
-- Не се пази история на местоположението на сървър.
-- Няма акаунти, база данни и потребителско проследяване.
-- Без платени услуги в MVP при некомерсиална употреба и в рамките на условията на Open-Meteo.
-- Зареждането и грешките се показват видимо; бутоните се блокират при активна заявка.
+- Responsive layout for mobile and desktop.
+- HTTPS is required for browser geolocation, except on localhost.
+- Do not store geolocation history on an application server.
+- No user accounts, database, or application-level tracking.
+- No paid services for the non-commercial MVP, subject to the Open-Meteo terms of service.
+- Provide loading and error states and disable actions during active requests.
 
-## 5. Примерни отговори
+## 5. Example responses
 
-- „Според текущите метеоданни в района вали.“
-- „Според текущите метеоданни в района не вали.“
-- „Очаква се дъждът да спре около 17:00 ч.“
-- „Прогнозата не позволява да определим надежден час за спиране.“
-- „В момента няма отчетен дъжд.“ (при натискане на „Докога ще вали?“)
+- "According to current weather data, it is raining in this area."
+- "According to current weather data, it is not raining in this area."
+- "Rain is expected to stop at approximately 17:00 (hourly forecast)."
+- "The forecast does not provide a reliable stop time."
+- "It is not currently raining in this area."
 
-## 6. Критерии за приемане
+## 6. Acceptance criteria
 
-- Двата бутона работят независимо.
-- Изрично се обработва отказът за геолокация.
-- Няма измислени часове или фалшива точност.
-- Данните от повторни заявки се преизползват в рамките на 10 минути.
-- Работи като статичен сайт без собствен backend.
+- Both action buttons work independently.
+- Denied geolocation permission is handled explicitly.
+- No invented or falsely precise stop times.
+- Repeated requests within 10 minutes reuse cached data.
+- The production application runs as a static website without a backend.
 
-## 7. Извън обхвата на v0.1
+## 7. Out of scope for v0.1
 
-- Известия, акаунти, карта, история, радарна визуализация.
-- LLM формулиране на отговорите и платени OpenAI API заявки.
-- Гарантирани минутни прогнози или точност за конкретна улица.
+- Push notifications, accounts, maps, history, and radar maps.
+- AI-written answers and paid OpenAI API requests.
+- Minute-level accuracy or guaranteed conditions at an individual street address.
