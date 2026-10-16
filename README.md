@@ -6,6 +6,7 @@ A minimal weather app that checks current rainfall and the next expected weather
 
 - Automatically requests browser geolocation at startup (subject to browser permission); manual city search remains available if location access fails.
 - One **Check weather** button updates two status cards: current **Raining / Dry** and upcoming **Will stop / Will start**.
+- **Recent checks** shows the last three distinct checked locations, newest first. Rechecking a location replaces its previous entry. Tap an entry to display its saved conditions **without making any network request**.
 - Wet states and their badges are blue; dry states and their badges are yellow. The upcoming change uses the opposite color of the current conditions.
 - Hourly forecasts provide approximate next-rain onset or rain-stop time; both cards support historical offline snapshots.
 - Open-Meteo API, 10-minute in-memory cache, no user accounts, backend, database, or AI service.
@@ -43,7 +44,9 @@ Forecasts are silently prefetched after successful location selection and saved 
 
 If no snapshot exists, the app immediately explains that an online visit is required. Offline mode never requests GPS, reverse geocoding, weather, or city suggestions, never shows a loading spinner, and leaves the two weather buttons clickable. Clear browser site data to delete the saved location and snapshots.
 
-Run `npm test` for the offline-cache unit tests.
+The history is stored alongside snapshots in `localStorage` (`raincheck:offline:v1`). It holds at most three checked locations; opening a history entry never updates its time, reorders the list, calls geolocation, or requests a forecast. Checks use the existing in-memory cache when available, while silent location prefetches are not added to history. Offline Check weather clicks can update the recent-check order from saved data.
+
+Run `npm test` for the offline-cache, history, and weather unit tests.
 
 ## Testing PWA offline
 
