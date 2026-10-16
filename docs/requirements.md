@@ -37,6 +37,10 @@ A single-page application showing the selected location, one weather check butto
 | F19 | Transient feedback toast | Keep an accessible top toast with no reserved layout height. Animate entry from above and dismissal toward the left, respecting reduced-motion preferences. |
 | F20 | Bottom footer layout | Use a full-height flex column so credits sit at the viewport bottom when content is short, but follow naturally after longer content without overlaying results. |
 
+| F21 | Mobile history and deletion | History rows never exceed the viewport width, even with long city names or forecast text. Provide a small, accessible remove control for each item; removing an entry updates only the history store, without weather requests or deleting retained cached forecasts. |
+| F22 | Automatic PWA refresh | Each production build produces a distinct precache identity. Apache disables HTTP caching for HTML and PWA metadata; the app checks for new service workers on load and return to an active online state, then reloads controlled pages when the new complete worker activates. Offline weather history remains intact. |
+
+
 ## 4. Non-functional requirements
 
 - Responsive layout for mobile and desktop.
@@ -62,6 +66,8 @@ A single-page application showing the selected location, one weather check butto
 - Clicking any recent check online or offline fills the single summary from its stored snapshot without API calls.
 - Silent weather prefetches and merely selecting a location do not create history records.
 - The history survives a page reload, and old localStorage records without a history remain usable.
+- Narrow mobile widths have no horizontal scrolling even for long history entries. Each entry has a separate × control that removes the entry without a new weather request or deleting the cached forecast.
+- After deploying a complete new production build, an online browser with the updated PWA listener loads the new build after the next worker activates, without manual site-data clearing.
 - A successful GPS lookup visibly confirms the resolved city/region/country or falls back to coordinates.
 - City suggestions are debounced and selectable by mouse or keyboard.
 - Denied geolocation permission is handled explicitly.
