@@ -1,6 +1,6 @@
 import './style.css';
 import { rainNow, rainStarts, describeRainNow, rainUntil } from './weather.js';
-import { rememberLocation, getLastLocation, saveWeatherSnapshot, getWeatherSnapshot, formatCachedWeather } from './offline-cache.js';
+import { rememberLocation, getLastLocation, saveWeatherSnapshot, getWeatherSnapshot, recordWeatherCheck, getWeatherHistory } from './offline-cache.js';
 
 const app = document.querySelector('#app');
 const CACHE_TTL = 10 * 60 * 1000;
@@ -14,6 +14,7 @@ let activeSuggestion = -1;
 let originUnavailable = false;
 let originCheckId = 0;
 let gpsRequestId = 0;
+let viewToken = 0;
 let citySearchController;
 const inflightWeather = new Map();
 const reverseCache = new Map();
@@ -37,6 +38,10 @@ app.innerHTML = `
     <article class="weather-card neutral" id="forecast-card"><span class="weather-badge" id="forecast-badge">FORECAST</span><h2 id="forecast-title">Waiting for data</h2><p id="forecast-detail">The next weather change will appear here.</p></article>
   </section>
   <section id="answer" class="answer" aria-live="polite" role="status"><span class="answer-label">STATUS</span><p>Choose a location and check the weather.</p></section>
+  <section class="history" aria-label="Recent weather checks">
+    <div class="history-heading"><h2>Recent checks</h2><small>Last 3 locations · saved on this device</small></div>
+    <div id="history-list" class="history-list"></div>
+  </section>
   <footer>
     <div>Weather data: <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a> · Location names: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap contributors</a> · Local conditions may differ.</div>
     <div class="credits">Created by <a href="https://tonymitsev.com/" target="_blank" rel="noopener noreferrer">tonymitsev.com</a> · AI-assisted development with <a href="https://openai.com/" target="_blank" rel="noopener noreferrer">OpenAI</a></div>
@@ -70,6 +75,7 @@ const cityForm = document.querySelector('#city-form');
 const actionButtons = [document.querySelector('#check')];
 const currentCard = document.querySelector('#current-card');
 const forecastCard = document.querySelector('#forecast-card');
+const historyList = document.querySelector('#history-list');
 
 function render(message, category = '') {
   answer.className = `answer ${category}`;
@@ -110,15 +116,88 @@ function setBusy(value) {
   cityInput.disabled = false;
 }
 
-function showSavedWeather() {
-  const saved = location ? getWeatherSnapshot(location) : null;
-  if (!saved) return render('No saved weather for this location. Connect once to download a forecast.', 'offline');
+function displaySavedSnapshot(saved) {
   const currentText = saved.raining === true ? 'Rain was recorded at the last check.'
     : saved.raining === false ? 'No rain was recorded at the last check.' : 'Current rain data was unavailable.';
   const forecastText = saved.raining === true ? saved.stopForecast
     : saved.raining === false ? (saved.nextRainForecast || 'No saved start-time forecast is available.')
     : 'No reliable forecast is available.';
   displayWeather(saved.raining, currentText, forecastText, { cached: true, savedAt: saved.savedAt });
+}
+
+function showSavedWeather(recordCheck = false) {
+  const saved = location ? getWeatherSnapshot(location) : null;
+  if (!saved) return render('No saved weather for this location. Connect once to download a forecast.', 'offline');
+  displaySavedSnapshot(saved);
+  if (recordCheck) {
+    recordWeatherCheck(location, saved);
+    renderHistory();
+  }
+}
+
+function openHistoryEntry(entry) {
+  // Viewing history is a local-only operation, even when the device is online.
+  ++viewToken;
+  ++gpsRequestId;
+  clearTimeout(suggestionTimer);
+  suggestionController?.abort();
+  citySearchController?.abort();
+  clearSuggestions();
+  setBusy(false);
+  location = { ...entry.location };
+  rememberLocation(location);
+  place.textContent = location.name;
+  status.textContent = '✓ Saved history entry';
+  cityInput.value = location.name;
+  displaySavedSnapshot(entry.snapshot);
+}
+
+function renderHistory() {
+  historyList.replaceChildren();
+  const entries = getWeatherHistory();
+  if (!entries.length) {
+    const empty = document.createElement('p');
+    empty.className = 'history-empty';
+    empty.textContent = 'No weather checks saved yet. Check the weather to start your history.';
+    historyList.append(empty);
+    return;
+  }
+  for (const entry of entries) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'history-item';
+    button.title = 'Show saved weather without downloading a new forecast';
+
+    const heading = document.createElement('span');
+    heading.className = 'history-item-heading';
+    const name = document.createElement('strong');
+    name.className = 'history-location';
+    name.textContent = entry.location.name;
+    const time = document.createElement('time');
+    time.className = 'history-time';
+    time.dateTime = new Date(entry.checkedAt).toISOString();
+    time.textContent = new Date(entry.checkedAt).toLocaleString('en-GB', {
+      day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+    });
+    heading.append(name, time);
+
+    const details = document.createElement('span');
+    details.className = 'history-item-details';
+    const badge = document.createElement('span');
+    badge.className = `history-weather-badge ${entry.snapshot.raining === true ? 'wet' : entry.snapshot.raining === false ? 'dry' : 'neutral'}`;
+    badge.textContent = entry.snapshot.raining === true ? 'RAINING' : entry.snapshot.raining === false ? 'DRY' : 'UNKNOWN';
+    const summary = document.createElement('span');
+    summary.className = 'history-summary';
+    summary.textContent = entry.snapshot.raining === true
+      ? entry.snapshot.stopForecast
+      : entry.snapshot.raining === false
+        ? (entry.snapshot.nextRainForecast || 'No saved next-rain forecast')
+        : 'Conditions unavailable';
+    details.append(badge, summary);
+    button.append(heading, details);
+    button.addEventListener('click', () => openHistoryEntry(entry));
+    historyList.append(button);
+  }
 }
 
 function restoreSavedLocation() {
@@ -142,6 +221,7 @@ function updateConnectionState() {
 
   if (offline) {
     ++gpsRequestId;
+    ++viewToken;
     clearTimeout(suggestionTimer);
     suggestionController?.abort();
     citySearchController?.abort();
@@ -175,6 +255,7 @@ async function checkAppServer() {
   updateConnectionState();
 }
 function setLocation(latitude, longitude, name, source = 'city') {
+  ++viewToken;
   clearTimeout(suggestionTimer);
   suggestionController?.abort();
   location = {latitude, longitude, name};
@@ -391,7 +472,7 @@ async function getWeather(atLocation = location) {
     if (controller.signal.aborted || !navigator.onLine) throw new Error('Offline');
     const timestamp = Date.now();
     weatherCache.set(key, { data, time: timestamp });
-    if (rainNow(data) !== null) {
+    {
       saveWeatherSnapshot(atLocation, {
         savedAt: timestamp,
         raining: rainNow(data),
@@ -411,17 +492,20 @@ async function getWeather(atLocation = location) {
 }
 async function ask() {
   if (!navigator.onLine) {
-    showSavedWeather();
+    showSavedWeather(true);
     return;
   }
   if (busy) return;
   if (!location) return render('First select Find me or enter a city.', 'error');
+  const selected = { ...location };
+  const requestView = ++viewToken;
   setBusy(true);
   render('Checking the forecast…', 'loading');
   try {
-    const data = await getWeather(location);
+    const data = await getWeather(selected);
+    if (requestView !== viewToken) return;
     if (!navigator.onLine) {
-      showSavedWeather();
+      showSavedWeather(true);
       return;
     }
     const raining = rainNow(data);
@@ -432,15 +516,22 @@ async function ask() {
       raining === true ? rainUntil(data)
         : raining === false ? rainStarts(data)
         : 'Current conditions are uncertain.');
+    // Only explicit checks create history; silent location prefetch does not.
+    const snapshot = getWeatherSnapshot(selected);
+    if (snapshot) {
+      recordWeatherCheck(selected, snapshot);
+      renderHistory();
+    }
   } catch (error) {
-    if (!navigator.onLine) showSavedWeather();
+    if (requestView !== viewToken) return;
+    if (!navigator.onLine) showSavedWeather(true);
     else {
-      const saved = location && getWeatherSnapshot(location);
-      if (saved) showSavedWeather();
+      const saved = getWeatherSnapshot(selected);
+      if (saved) displaySavedSnapshot(saved);
       else render(error.message || 'Could not load the forecast.', 'error');
     }
   } finally {
-    setBusy(false);
+    if (requestView === viewToken) setBusy(false);
   }
 }
 locateButton.addEventListener('click', locate);
@@ -462,6 +553,7 @@ window.addEventListener('focus', () => { void checkAppServer(); });
 document.addEventListener('visibilitychange', () => {
   if (!document.hidden) void checkAppServer();
 });
+renderHistory();
 restoreSavedLocation();
 updateConnectionState();
 void checkAppServer();
