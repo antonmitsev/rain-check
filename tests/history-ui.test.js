@@ -86,13 +86,13 @@ test('history click only shows stored cards, never requests weather online or of
   assert.equal(history.children.length, 2);
   history.children[0].listeners.click();
   assert.equal(app.select('#place').textContent, 'Plovdiv');
-  assert.equal(app.select('#current-badge').textContent, 'SAVED RAINING');
+  assert.equal(app.select('#summary-now').textContent, 'ВАЛИ');
   assert.equal(app.requests, 0);
 
   app.navigator.onLine = true;
   history.children[1].listeners.click();
   assert.equal(app.select('#place').textContent, 'Sofia');
-  assert.equal(app.select('#current-badge').textContent, 'SAVED DRY');
+  assert.equal(app.select('#summary-now').textContent, 'СУХО');
   assert.equal(app.requests, 0);
   assert.deepEqual(getWeatherHistory(app.store).map(e => e.location.name), ['Plovdiv','Sofia']);
 });
