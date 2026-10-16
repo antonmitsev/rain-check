@@ -65,7 +65,8 @@ export function saveWeatherSnapshot(location, conditions, storage) {
   store.snapshots[key] = {
     savedAt: conditions.savedAt,
     raining: conditions.raining,
-    stopForecast: conditions.stopForecast.slice(0, 400)
+    stopForecast: conditions.stopForecast.slice(0, 400),
+    observedAt: typeof conditions.observedAt === 'string' ? conditions.observedAt.slice(0, 25) : null
   };
   const ordered = Object.entries(store.snapshots)
     .filter(([, record]) => Number.isFinite(record?.savedAt))
@@ -92,8 +93,12 @@ export function formatCachedWeather(snapshot, kind) {
   if (kind === 'until') {
     return `Saved forecast from ${at}: ${snapshot.stopForecast} This is not a live forecast.`;
   }
+  const observedAt = typeof snapshot.observedAt === 'string'
+    && /^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}/.test(snapshot.observedAt)
+    ? ` Weather time: ${snapshot.observedAt.replace('T', ' ')} (location time).`
+    : '';
   const condition = snapshot.raining === null
     ? 'Rain conditions were unavailable.'
     : snapshot.raining ? 'Rain was reported in this area.' : 'No rain was reported in this area.';
-  return `Saved weather from ${at}: ${condition} This is not a live observation.`;
+  return `Saved weather from ${at}.${observedAt} ${condition} This is not a live observation.`;
 }
