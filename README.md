@@ -28,7 +28,7 @@ Build for production (including the offline asset manifest and build-specific se
 npm run build
 ```
 
-Upload **all contents of `dist/`**, including `precache-manifest.json`, to the domain or subdomain's document root. Do not upload `src/` or `node_modules/`.
+Upload **all contents of `dist/`**, including `precache-manifest.json` and hidden `.htaccess`, to the domain or subdomain's document root. The Apache `.htaccess` redirects HTTP traffic to HTTPS with a permanent 301, preserving the requested host, path, and query string. Ensure TLS is configured first. Do not upload `src/` or `node_modules/`.
 
 **[Apache, cPanel, DNS and optional Git deployment instructions](docs/hosting-cpanel.md)**
 
