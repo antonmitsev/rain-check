@@ -28,7 +28,13 @@ app.innerHTML = `
     <strong id="connection-label">ONLINE</strong>
     <span id="connection-description">Live weather available</span>
   </div>
-  <div class="hero"><div class="eyebrow">RAIN AT A GLANCE <span class="eyebrow-separator" aria-hidden="true">|</span> TWO QUESTIONS. SHORT ANSWERS. NO SIGN-UP.</div><h1>Do I need an <em>umbrella?</em></h1></div>
+  <div class="hero">
+    <div class="eyebrow">
+      <span class="eyebrow-lead">RAIN AT A GLANCE</span>
+      <span class="eyebrow-details"><span class="eyebrow-separator" aria-hidden="true">|</span> ONE CHECK · NO SIGN-UP</span>
+    </div>
+    <h1>Do I need an <em>umbrella?</em></h1>
+  </div>
   <section class="location-panel" aria-label="Location">
     <div class="location-line"><span class="pin">⌖</span><div><small>Location</small><strong id="place">Not selected yet</strong><small id="location-status" class="location-status" aria-live="polite">Choose a city or find your location</small></div><button id="locate" class="link-btn" type="button">Find me</button></div>
     <form id="city-form"><label for="city">Or enter a city</label><div class="city-input"><input id="city" name="city" placeholder="e.g. London" autocomplete="address-level2" required minlength="2"><button type="submit">Search</button></div><div id="suggestions" class="suggestions" role="listbox" aria-label="City suggestions" hidden></div></form>
