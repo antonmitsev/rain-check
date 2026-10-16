@@ -183,8 +183,12 @@ function setLocation(latitude, longitude, name, source = 'city') {
   status.textContent = source === 'gps' ? '✓ GPS location confirmed' : '✓ Location selected';
   cityInput.value = source === 'gps' ? '' : name;
   clearSuggestions();
+  updateCard(currentCard, '#current-badge', '#current-title', '#current-detail',
+    'neutral', 'CURRENT', 'Waiting for weather', 'Checking the selected location.');
+  updateCard(forecastCard, '#forecast-badge', '#forecast-title', '#forecast-detail',
+    'neutral', 'FORECAST', 'Waiting for forecast', 'The next change will appear here.');
   if (!navigator.onLine) {
-    showSavedWeather('now');
+    showSavedWeather();
   } else {
     render('Location confirmed. Choose a question.', 'success');
     // Prefetch the first forecast silently so it is available for a later offline launch.
