@@ -1,48 +1,48 @@
 # RainCheck ☔
 
-Минимално уеб приложение на български с два въпроса: **„Вали ли?“** и **„Докога ще вали?“**
+A minimal weather app answering two questions: **"Is it raining?"** and **"When will it stop raining?"**
 
-## Функции
+## Features
 
-- Локация от браузъра (с разрешение) или ръчно въведен град.
-- „Вали ли?“ — текущи данни за валежите в района.
-- „Докога ще вали?“ — приблизителен час на спиране според почасовата прогноза.
-- Open-Meteo API, кеш 10 минути, без акаунт, backend, база данни или AI.
-- Мобилен интерфейс. Работи като статичен сайт на Apache/cPanel.
+- Browser geolocation (with permission) or manual city search.
+- **Is it raining?** — current precipitation estimates for the selected area.
+- **When will it stop raining?** — approximate stop time from an hourly forecast.
+- Open-Meteo API, 10-minute in-memory cache, no user accounts, backend, database, or AI service.
+- Responsive interface; deployable as a static website on Apache/cPanel.
 
-## Локално стартиране
+## Run locally
 
-Изисква Node.js и npm **само на компютъра за разработка**.
+Node.js and npm are required **only on the development machine**.
 
 ```sh
 npm install
 npm run dev
 ```
 
-За production:
+Build for production:
 
 ```sh
 npm run build
 ```
 
-Качи **съдържанието на `dist/`** в Document Root на домейна/поддомейна. Не качвай `src/` и `node_modules/`.
+Upload **the contents of `dist/`** to the domain or subdomain's document root. Do not upload `src/` or `node_modules/`.
 
-**[Подробно: Apache / cPanel / DNS / .cpanel.yml](docs/hosting-cpanel.md)**
+**[Apache, cPanel, DNS and optional Git deployment instructions](docs/hosting-cpanel.md)**
 
-## Стек
+## Technology
 
-Vite + vanilla JavaScript + CSS (без React runtime — съзнателно минимизирани размер и зависимости). Метеоданни и геокодиране от [Open-Meteo](https://open-meteo.com/), според условията за ползване.
+Vite + vanilla JavaScript + CSS. There is no React runtime; this keeps the app small and dependency-light. Weather and geocoding services are provided by [Open-Meteo](https://open-meteo.com/), subject to its terms of use.
 
-## Документация
+## Documentation
 
-- [MVP изисквания](docs/requirements.md)
-- [Архитектура и алгоритъм](docs/architecture.md)
-- [Споделен Apache / cPanel](docs/hosting-cpanel.md)
+- [MVP requirements](docs/requirements.md)
+- [Architecture and algorithm](docs/architecture.md)
+- [Apache shared hosting / cPanel](docs/hosting-cpanel.md)
 
-## Ограничения
+## Limitations
 
-Текущите метеоданни се отнасят до района, а не до физически сензор на място. Краят на валежа е **приблизителен**, основан на почасова прогноза. Не е краткосрочен радарен nowcast. Потребителската локация се изпраща от браузъра към Open-Meteo; приложението няма собствен сървър.
+Current conditions describe an estimated area, not a physical sensor at the exact user location. The precipitation stop time is **approximate** and based on an hourly forecast, not radar nowcasting. The browser sends coordinates to Open-Meteo; this app has no application server.
 
-## Лиценз
+## License
 
 [MIT](LICENSE) © 2026 Anton Mitsev.
