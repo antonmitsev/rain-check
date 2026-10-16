@@ -35,6 +35,10 @@ On application startup, geolocation is attempted automatically, using browser pe
 
 Manual city searches use Open-Meteo Geocoding API. Suggestions start after 3 characters with a 350 ms debounce, abort stale requests, and present up to 7 locations. City name, administrative area and country distinguish ambiguous matches.
 
+## Unified weather UI
+
+The single **Check weather** action obtains one Open-Meteo response, then populates two cards: current rain state (blue wet / yellow dry) and forecast next change (yellow **Will stop** when currently raining / blue **Will start** when currently dry). Badge background colors match each card. Unknown data uses neutral styling. The two cards are also populated from a saved localStorage snapshot offline; cached readings are clearly labeled as saved rather than live.
+
 ## Answer algorithm
 
 The pure functions in `src/weather.js` implement forecast interpretation and can be tested without the UI using `tests/weather.test.js` (`npm test`).
