@@ -31,6 +31,7 @@ A single-page application showing the selected location, two action buttons, and
 | F13 | Connectivity indication | Show a persistent connection banner and warm warning theme when offline or when the origin server is unreachable. Keep weather actions responsive while offline. |
 | F14 | Persistent offline forecasts | Save the last selected location and up to eight time-stamped weather snapshots in localStorage. Weather buttons return the matching saved observation or rain-stop forecast without spinners or API requests when offline. Identify historical data clearly and show a helpful message when none exists. |
 | F15 | Compact hero heading | Render "Do I need an umbrella?" without an explicit line break and with smaller responsive typography. |
+| F16 | Enforce HTTPS on Apache | Include `public/.htaccess` in the production build to redirect HTTP requests to HTTPS with HTTP 301, preserving the host, path, and query string. Require an available SSL/TLS certificate. |
 
 ## 4. Non-functional requirements
 
