@@ -6,14 +6,19 @@ const STOP_THRESHOLD = 0.1;
 let location = null;
 let busy = false;
 let weatherCache = new Map();
+let suggestionTimer;
+let suggestionController;
+let cityMatches = [];
+let activeSuggestion = -1;
+const reverseCache = new Map();
 
 app.innerHTML = `
 <section class="shell">
   <header><div class="brand"><span class="brand-icon" aria-hidden="true">☁</span> RainCheck</div><span class="version">v0.1</span></header>
   <div class="hero"><div class="eyebrow">WEATHER IN TWO CLICKS</div><h1>Do I need an<br><em>umbrella?</em></h1><p>Two questions. Short answers. No sign-up.</p></div>
   <section class="location-panel" aria-label="Location">
-    <div class="location-line"><span class="pin">⌖</span><div><small>Location</small><strong id="place">Not selected yet</strong></div><button id="locate" class="link-btn" type="button">Find me</button></div>
-    <form id="city-form"><label for="city">Or enter a city</label><div class="city-input"><input id="city" name="city" placeholder="e.g. London" autocomplete="address-level2" required minlength="2"><button type="submit">Select</button></div></form>
+    <div class="location-line"><span class="pin">⌖</span><div><small>Location</small><strong id="place">Not selected yet</strong><small id="location-status" class="location-status" aria-live="polite">Choose a city or find your location</small></div><button id="locate" class="link-btn" type="button">Find me</button></div>
+    <form id="city-form"><label for="city">Or enter a city</label><div class="city-input"><input id="city" name="city" placeholder="e.g. London" autocomplete="address-level2" required minlength="2"><button type="submit">Search</button></div><div id="suggestions" class="suggestions" role="listbox" aria-label="City suggestions" hidden></div></form>
   </section>
   <div class="actions"><button id="now" class="action" type="button"><span class="action-symbol">☔</span><span>Is it raining?</span><small>Right now</small></button><button id="until" class="action" type="button"><span class="action-symbol">◷</span><span>When will it stop?</span><small>Next few hours</small></button></div>
   <section id="answer" class="answer" aria-live="polite" role="status"><span class="answer-label">ANSWER</span><p>Choose a location and click a button.</p></section>
@@ -21,6 +26,9 @@ app.innerHTML = `
 </section>`;
 
 const place = document.querySelector('#place');
+const status = document.querySelector('#location-status');
+const cityInput = document.querySelector('#city');
+const suggestions = document.querySelector('#suggestions');
 const answer = document.querySelector('#answer');
 const locateButton = document.querySelector('#locate');
 const cityForm = document.querySelector('#city-form');
@@ -37,10 +45,90 @@ function setBusy(value) {
   busy = value;
   [...actionButtons, locateButton, cityForm.querySelector('button')].forEach(b => b.disabled = value);
 }
-function setLocation(latitude, longitude, name) {
+function setLocation(latitude, longitude, name, source = 'city') {
   location = {latitude, longitude, name};
   place.textContent = name;
-  render('Ready. Choose a question.');
+  status.textContent = source === 'gps' ? '✓ GPS location confirmed' : '✓ Location selected';
+  cityInput.value = source === 'gps' ? '' : name;
+  clearSuggestions();
+  render('Location confirmed. Choose a question.', 'success');
+}
+function clearSuggestions() {
+  suggestions.replaceChildren();
+  suggestions.hidden = true;
+  cityMatches = [];
+  activeSuggestion = -1;
+}
+function cityLabel(city) {
+  return [city.name, city.admin1, city.country].filter(Boolean).filter((part, i, arr) => arr.indexOf(part) === i).join(', ');
+}
+function chooseMatch(city) {
+  if (!city) return;
+  setLocation(city.latitude, city.longitude, cityLabel(city));
+}
+function showSuggestions(cities) {
+  clearSuggestions();
+  cityMatches = cities;
+  if (!cities.length) {
+    const message = document.createElement('div');
+    message.className = 'suggestion-empty';
+    message.textContent = 'No matching cities';
+    suggestions.append(message);
+  }
+  cities.forEach((city, index) => {
+    const item = document.createElement('button');
+    item.type = 'button';
+    item.className = 'suggestion-item';
+    item.setAttribute('role', 'option');
+    item.id = `suggestion-${index}`;
+    item.textContent = cityLabel(city);
+    item.addEventListener('click', () => chooseMatch(city));
+    suggestions.append(item);
+  });
+  suggestions.hidden = false;
+}
+async function searchCities(query, signal) {
+  const url = new URL('https://geocoding-api.open-meteo.com/v1/search');
+  url.search = new URLSearchParams({name: query, count: '7', language: 'en', format: 'json'}).toString();
+  const response = await fetch(url, {signal});
+  if (!response.ok) throw new Error('City search is unavailable.');
+  const data = await response.json();
+  return data.results ?? [];
+}
+function suggestCities() {
+  clearTimeout(suggestionTimer);
+  suggestionController?.abort();
+  const query = cityInput.value.trim();
+  if (query.length < 3) { clearSuggestions(); return; }
+  const controller = new AbortController();
+  suggestionController = controller;
+  suggestionTimer = setTimeout(async () => {
+    try {
+      const cities = await searchCities(query, controller.signal);
+      if (!controller.signal.aborted && cityInput.value.trim() === query) showSuggestions(cities);
+    } catch (error) {
+      if (error.name !== 'AbortError') clearSuggestions();
+    }
+  }, 350);
+}
+async function reverseGeocode(latitude, longitude) {
+  const key = `${latitude.toFixed(3)}:${longitude.toFixed(3)}`;
+  if (reverseCache.has(key)) return reverseCache.get(key);
+  // One lookup per explicit GPS action; never use Nominatim for autocomplete.
+  const url = new URL('https://nominatim.openstreetmap.org/reverse');
+  url.search = new URLSearchParams({
+    lat: String(latitude), lon: String(longitude),
+    format: 'jsonv2', zoom: '10', addressdetails: '1', 'accept-language': 'en'
+  }).toString();
+  const response = await fetch(url);
+  if (!response.ok) throw new Error('Reverse geocoding unavailable');
+  const data = await response.json();
+  const addr = data.address ?? {};
+  const name = [addr.city || addr.town || addr.village || addr.municipality || addr.county,
+    addr.state, addr.country].filter(Boolean).filter((value, i, arr) => arr.indexOf(value) === i).join(', ');
+  if (!name) throw new Error('No place name available');
+  reverseCache.set(key, name);
+  return name;
 }
 function getCurrentPosition() {
   return new Promise((resolve, reject) => {
@@ -56,7 +144,14 @@ async function locate() {
   render('Finding your location…', 'loading');
   try {
     const pos = await getCurrentPosition();
-    setLocation(pos.coords.latitude, pos.coords.longitude, 'My current location');
+    const {latitude, longitude} = pos.coords;
+    let name;
+    try {
+      name = await reverseGeocode(latitude, longitude);
+    } catch {
+      name = `GPS: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+    }
+    setLocation(latitude, longitude, name, 'gps');
   } catch (error) {
     render(error.code === 1
       ? 'Location access was denied. Enter a city below.'
@@ -66,22 +161,42 @@ async function locate() {
 async function chooseCity(event) {
   event.preventDefault();
   if (busy) return;
-  const name = new FormData(cityForm).get('city')?.trim();
-  if (!name || name.length < 2) return;
+  const name = cityInput.value.trim();
+  if (name.length < 2) return;
   setBusy(true);
-  render('Finding the city…', 'loading');
+  render('Searching for cities…', 'loading');
+  clearTimeout(suggestionTimer);
+  suggestionController?.abort();
   try {
-    const url = new URL('https://geocoding-api.open-meteo.com/v1/search');
-    url.search = new URLSearchParams({name, count: '1', language: 'en', format: 'json'}).toString();
-    const response = await fetch(url);
-    if (!response.ok) throw new Error('The city search service is unavailable.');
-    const data = await response.json();
-    const city = data.results?.[0];
-    if (!city) throw new Error('City not found. Try another name.');
-    setLocation(city.latitude, city.longitude, [city.name, city.country].filter(Boolean).join(', '));
-  } catch (error) { render(error.message || 'Something went wrong.', 'error'); }
+    const cities = await searchCities(name);
+    if (!cities.length) throw new Error('City not found. Try another name.');
+    if (cities.length === 1) chooseMatch(cities[0]);
+    else {
+      showSuggestions(cities);
+      render('Select the correct location from the suggestions.');
+    }
+  } catch (error) { render(error.message || 'City search failed.', 'error'); }
   finally { setBusy(false); }
 }
+cityInput.addEventListener('input', suggestCities);
+cityInput.addEventListener('keydown', (event) => {
+  if (suggestions.hidden || !cityMatches.length) return;
+  if (event.key === 'Escape') { clearSuggestions(); return; }
+  if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+    event.preventDefault();
+    activeSuggestion = (activeSuggestion + (event.key === 'ArrowDown' ? 1 : -1) + cityMatches.length) % cityMatches.length;
+    [...suggestions.querySelectorAll('.suggestion-item')].forEach((item, i) => {
+      item.classList.toggle('active', i === activeSuggestion);
+      item.setAttribute('aria-selected', String(i === activeSuggestion));
+    });
+  } else if (event.key === 'Enter' && activeSuggestion >= 0) {
+    event.preventDefault();
+    chooseMatch(cityMatches[activeSuggestion]);
+  }
+});
+document.addEventListener('click', (event) => {
+  if (!cityForm.contains(event.target)) clearSuggestions();
+});
 async function getWeather() {
   const key = `${location.latitude.toFixed(2)}:${location.longitude.toFixed(2)}`;
   const cached = weatherCache.get(key);
