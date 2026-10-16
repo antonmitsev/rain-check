@@ -24,7 +24,9 @@ A single-page application showing the selected location, two action buttons, and
 | F06 | Weather cache | Cache responses by approximate coordinates for up to 10 minutes. |
 | F07 | Error handling | Explain network, geolocation, and unavailable-data failures. |
 | F08 | PWA installation | Provide a valid web manifest, 192px and 512px icons, standalone display mode, and a registered service worker. |
-| F09 | Offline app shell | Previously loaded UI opens offline; live weather and geocoding require network access and should show an error if unavailable. |\n| F10 | Build version endpoint | Each production build emits a public `version.json` with package version, UTC build timestamp and optional Git commit. |
+| F09 | Offline app shell | Previously loaded UI opens offline; live weather and geocoding require network access and should show an error if unavailable. |
+| F10 | Build version endpoint | Each production build emits a public `version.json` with package version, UTC build timestamp and optional Git commit. |
+| F11 | Visible build identity | The UI header shows the version and the first seven commit characters from `version.json`, with a safe fallback. |
 
 ## 4. Non-functional requirements
 
@@ -45,7 +47,9 @@ A single-page application showing the selected location, two action buttons, and
 
 ## 6. Acceptance criteria
 
-- Both action buttons work independently.\n- A successful GPS lookup visibly confirms the resolved city/region/country or falls back to coordinates.\n- City suggestions are debounced and selectable by mouse or keyboard.
+- Both action buttons work independently.
+- A successful GPS lookup visibly confirms the resolved city/region/country or falls back to coordinates.
+- City suggestions are debounced and selectable by mouse or keyboard.
 - Denied geolocation permission is handled explicitly.
 - No invented or falsely precise stop times.
 - Repeated requests within 10 minutes reuse cached data.
