@@ -37,7 +37,7 @@ The browser's `online` and `offline` events update the warning state immediately
 
 RainCheck shows up to **three** most recent distinct locations that were explicitly checked using **Check weather**, with their last check time and wet/dry status. Repeating a check for the same rounded coordinates replaces its older entry and moves it to the top. The entries are stored in the existing localStorage store (`raincheck:offline:v1`) and remain visible after offline restart.
 
-History rows stay inside the mobile viewport, wrap long names and forecasts, and include a small × button for removing a single row. Removal changes only the localStorage history, not forecast snapshots, and uses no network requests.
+The main app uses a centered 580px maximum width on desktop and fills narrower mobile screens. History cards stay within the app width, wrap long names and forecasts, and include a small × button **inside the card** at the top-right for removing a single row. Removal changes only the localStorage history, not forecast snapshots, and uses no network requests.
 
 Selecting a history item displays the snapshot captured on its last check, with a clearly marked saved timestamp. It **never** makes an API request, runs GPS, shows a loader, or changes the order of history, even while online. Silent weather prefetch and location selection alone do not create history entries. The full weather snapshot store still keeps up to eight locations independently of the three visible recent checks.
 
