@@ -112,3 +112,19 @@ body.offline-mode{background:radial-gradient(circle at 80% 0%,#4a3931 0,transpar
   to{opacity:0;transform:translate(calc(-50% - 100vw),0)}
 }
 @media(prefers-reduced-motion:reduce){.toast--enter,.toast--exit{animation:none}}
+
+
+/* History rows must never make a narrow PWA viewport horizontally scroll. */
+.shell,.history,.history-list,.history-entry,.history-item,.history-item-heading,.history-item-details{min-width:0;max-width:100%}
+.shell{width:100%}
+.history-entry{display:grid;grid-template-columns:minmax(0,1fr) 32px;align-items:start;gap:7px;width:100%}
+.history-item{min-width:0;width:100%;overflow:hidden}
+.history-item-heading{min-width:0;flex-wrap:wrap}
+.history-location{min-width:0;max-width:100%;overflow-wrap:anywhere;word-break:normal;white-space:normal}
+.history-item-details{min-width:0;width:100%;overflow:hidden}
+.history-summary{min-width:0;flex:1;max-width:100%;white-space:normal;overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden}
+.history-remove{display:grid;place-items:center;width:32px;height:32px;margin:4px 0 0;padding:0;border:1px solid #3b5269;border-radius:9px;background:#18283d;color:#9db0c4;font:500 20px/1 'DM Sans',sans-serif;cursor:pointer;flex-shrink:0}
+.history-remove:hover,.history-remove:focus-visible{background:#452a32;border-color:#b87884;color:#ffe3e7}
+.history-remove:focus-visible{outline:2px solid #7fbdfd;outline-offset:2px}
+.offline-mode .history-remove{background:#30282a;border-color:#655047;color:#e5c0a1}
+@media(max-width:440px){.history-entry{grid-template-columns:minmax(0,1fr) 30px;gap:5px}.history-remove{width:30px;height:30px}.history-item-details{flex-wrap:wrap}.history-summary{flex-basis:100%}}
