@@ -26,13 +26,17 @@ app.innerHTML = `
     <strong id="connection-label">ONLINE</strong>
     <span id="connection-description">Live weather available</span>
   </div>
-  <div class="hero"><div class="eyebrow">WEATHER IN TWO CLICKS</div><h1>Do I need an <em>umbrella?</em></h1><p>Two questions. Short answers. No sign-up.</p></div>
+  <div class="hero"><div class="eyebrow">RAIN AT A GLANCE</div><h1>Do I need an <em>umbrella?</em></h1><p>Two questions. Short answers. No sign-up.</p></div>
   <section class="location-panel" aria-label="Location">
     <div class="location-line"><span class="pin">⌖</span><div><small>Location</small><strong id="place">Not selected yet</strong><small id="location-status" class="location-status" aria-live="polite">Choose a city or find your location</small></div><button id="locate" class="link-btn" type="button">Find me</button></div>
     <form id="city-form"><label for="city">Or enter a city</label><div class="city-input"><input id="city" name="city" placeholder="e.g. London" autocomplete="address-level2" required minlength="2"><button type="submit">Search</button></div><div id="suggestions" class="suggestions" role="listbox" aria-label="City suggestions" hidden></div></form>
   </section>
-  <div class="actions"><button id="now" class="action" type="button"><span class="action-symbol">☔</span><span>Is it raining?</span><small>Now & next rain</small></button><button id="until" class="action" type="button"><span class="action-symbol">◷</span><span>When will it stop?</span><small>Next few hours</small></button></div>
-  <section id="answer" class="answer" aria-live="polite" role="status"><span class="answer-label">ANSWER</span><p>Choose a location and click a button.</p></section>
+  <div class="actions"><button id="check" class="action" type="button"><span class="action-symbol">☔</span><span>Check weather</span><small>Current conditions & next change</small></button></div>
+  <section id="weather-results" class="weather-results" aria-live="polite">
+    <article class="weather-card neutral" id="current-card"><span class="weather-badge" id="current-badge">CURRENT</span><h2 id="current-title">Not checked yet</h2><p id="current-detail">Choose a location to check the weather.</p></article>
+    <article class="weather-card neutral" id="forecast-card"><span class="weather-badge" id="forecast-badge">FORECAST</span><h2 id="forecast-title">Waiting for data</h2><p id="forecast-detail">The next weather change will appear here.</p></article>
+  </section>
+  <section id="answer" class="answer" aria-live="polite" role="status"><span class="answer-label">STATUS</span><p>Choose a location and check the weather.</p></section>
   <footer>
     <div>Weather data: <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a> · Location names: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap contributors</a> · Local conditions may differ.</div>
     <div class="credits">Created by <a href="https://tonymitsev.com/" target="_blank" rel="noopener noreferrer">tonymitsev.com</a> · AI-assisted development with <a href="https://openai.com/" target="_blank" rel="noopener noreferrer">OpenAI</a></div>
@@ -63,7 +67,9 @@ const suggestions = document.querySelector('#suggestions');
 const answer = document.querySelector('#answer');
 const locateButton = document.querySelector('#locate');
 const cityForm = document.querySelector('#city-form');
-const actionButtons = [document.querySelector('#now'), document.querySelector('#until')];
+const actionButtons = [document.querySelector('#check')];
+const currentCard = document.querySelector('#current-card');
+const forecastCard = document.querySelector('#forecast-card');
 
 function render(message, category = '') {
   answer.className = `answer ${category}`;
@@ -72,6 +78,29 @@ function render(message, category = '') {
   p.textContent = message;
   answer.append(p);
 }
+function updateCard(card, badgeId, titleId, detailId, tone, badge, title, detail) {
+  card.className = `weather-card ${tone}`;
+  document.querySelector(badgeId).textContent = badge;
+  document.querySelector(titleId).textContent = title;
+  document.querySelector(detailId).textContent = detail;
+}
+
+function displayWeather(raining, currentText, forecastText, { cached = false, savedAt = null } = {}) {
+  const currentTone = raining === true ? 'wet' : raining === false ? 'dry' : 'neutral';
+  const futureTone = raining === true ? 'dry' : raining === false ? 'wet' : 'neutral';
+  const prefix = cached ? 'SAVED ' : '';
+  updateCard(currentCard, '#current-badge', '#current-title', '#current-detail',
+    currentTone, prefix + (raining === true ? 'RAINING' : raining === false ? 'DRY' : 'UNKNOWN'),
+    raining === true ? 'It is raining' : raining === false ? 'It is not raining' : 'Conditions unavailable',
+    currentText);
+  updateCard(forecastCard, '#forecast-badge', '#forecast-title', '#forecast-detail',
+    futureTone, prefix + (raining === true ? 'WILL STOP' : raining === false ? 'WILL START' : 'FORECAST'),
+    raining === true ? 'When will it stop?' : raining === false ? 'When will it start?' : 'Forecast unavailable',
+    forecastText);
+  if (cached) render(`Saved weather from ${new Date(savedAt).toLocaleString('en-GB')}. Not live data.`, 'offline');
+  else render('Forecast checked. Times are approximate.', 'success');
+}
+
 function setBusy(value) {
   busy = value;
   // Offline actions stay clickable so they can show saved data immediately.
@@ -81,9 +110,15 @@ function setBusy(value) {
   cityInput.disabled = false;
 }
 
-function showSavedWeather(kind = 'now') {
+function showSavedWeather() {
   const saved = location ? getWeatherSnapshot(location) : null;
-  render(formatCachedWeather(saved, kind), 'offline');
+  if (!saved) return render('No saved weather for this location. Connect once to download a forecast.', 'offline');
+  const currentText = saved.raining === true ? 'Rain was recorded at the last check.'
+    : saved.raining === false ? 'No rain was recorded at the last check.' : 'Current rain data was unavailable.';
+  const forecastText = saved.raining === true ? saved.stopForecast
+    : saved.raining === false ? (saved.nextRainForecast || 'No saved start-time forecast is available.')
+    : 'No reliable forecast is available.';
+  displayWeather(saved.raining, currentText, forecastText, { cached: true, savedAt: saved.savedAt });
 }
 
 function restoreSavedLocation() {
@@ -370,9 +405,9 @@ async function getWeather(atLocation = location) {
     if (inflightWeather.get(key)?.controller === controller) inflightWeather.delete(key);
   }
 }
-async function ask(kind) {
+async function ask() {
   if (!navigator.onLine) {
-    showSavedWeather(kind);
+    showSavedWeather();
     return;
   }
   if (busy) return;
@@ -382,18 +417,23 @@ async function ask(kind) {
   try {
     const data = await getWeather(location);
     if (!navigator.onLine) {
-      showSavedWeather(kind);
+      showSavedWeather();
       return;
     }
-    const message = kind === 'now' ? describeRainNow(data) : rainUntil(data);
-    render(message, 'success');
+    const raining = rainNow(data);
+    displayWeather(raining,
+      raining === true ? 'Rain is currently detected in this area.'
+        : raining === false ? 'No rain is currently detected in this area.'
+        : 'Current rainfall data is unavailable.',
+      raining === true ? rainUntil(data)
+        : raining === false ? rainStarts(data)
+        : 'Current conditions are uncertain.');
   } catch (error) {
-    if (!navigator.onLine) showSavedWeather(kind);
+    if (!navigator.onLine) showSavedWeather();
     else {
       const saved = location && getWeatherSnapshot(location);
-      render(saved
-        ? `Weather service unavailable. ${formatCachedWeather(saved, kind)}`
-        : error.message || 'Could not load the forecast.', saved ? 'offline' : 'error');
+      if (saved) showSavedWeather();
+      else render(error.message || 'Could not load the forecast.', 'error');
     }
   } finally {
     setBusy(false);
@@ -402,8 +442,7 @@ async function ask(kind) {
 locateButton.addEventListener('click', locate);
 // Start location discovery when the app opens; the manual city search remains available after failure.
 cityForm.addEventListener('submit', chooseCity);
-actionButtons[0].addEventListener('click', () => ask('now'));
-actionButtons[1].addEventListener('click', () => ask('until'));
+actionButtons[0].addEventListener('click', ask);
 
 window.addEventListener('online', () => {
   originUnavailable = false;
