@@ -61,6 +61,10 @@ This is a simple product heuristic, not a validated meteorological nowcasting te
 - Open-Meteo offers free non-commercial access under its applicable terms.
 - ChatGPT Free is not a programmable API. This MVP does not require an LLM.
 
+## PWA architecture
+
+The Vite build copies the files from `public/` directly into `dist/`. `manifest.webmanifest` describes the app and its installable icons; `sw.js` is registered after page load. The service worker caches the application shell and static assets on the same origin and uses network-first HTML navigation with a cached fallback. Cross-origin Open-Meteo and Nominatim requests are deliberately not cached by the service worker; live weather and city search require a network connection. See [PWA guide](pwa.md).
+
 ## Deployment
 
 See [Apache/cPanel deployment](hosting-cpanel.md).
