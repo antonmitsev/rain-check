@@ -7,7 +7,7 @@ A minimal weather app that checks current rainfall and its next expected change 
 - Automatically requests browser geolocation at startup (subject to browser permission); manual city search remains available if location access fails.
 - One **Check weather** button updates **one gradient summary** with two bold phases: **ВАЛИ / СПИРА В [time]** when raining or **СУХО / ЗАПОЧВА В [time]** when dry.
 - **Recent checks** shows the last three distinct checked locations, newest first. Rechecking a location replaces its previous entry. Tap an entry to display its saved conditions **without making any network request**.
-- The recent-check list wraps long location names and forecasts within narrow mobile screens. Each row has a discreet **×** button to remove that entry from history without deleting its cached forecast.
+- The app uses a centered, full-width layout capped at **580px** on desktop. History text stays within the card on mobile and desktop, and a discreet **×** button sits **inside the top-right corner** of each history card. Removing a history item does not delete its cached forecast.
 - The background runs **blue → yellow** for wet-to-dry and **yellow → blue** for dry-to-wet. If no reliable transition time exists, the display says so rather than inventing an hour. Saved history uses the same summary layout.
 - Hourly forecasts provide approximate next-rain onset or rain-stop time. Observation time, fetch time, forecast detail, and whether the result is saved are shown in smaller text inside the summary.
 - Open-Meteo API, 10-minute in-memory cache, no user accounts, backend, database, or AI service.
