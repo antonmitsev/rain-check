@@ -14,7 +14,7 @@ const reverseCache = new Map();
 
 app.innerHTML = `
 <section class="shell">
-  <header><div class="brand"><span class="brand-icon" aria-hidden="true">☁</span> RainCheck</div><span class="version" id="app-version" title="Loading build information">v0.1</span></header>
+  <header><div class="brand"><span class="brand-icon" aria-hidden="true">☁</span> RainCheck</div><span class="version" id="app-version" title="Application build">v0.1</span></header>
   <div class="hero"><div class="eyebrow">WEATHER IN TWO CLICKS</div><h1>Do I need an<br><em>umbrella?</em></h1><p>Two questions. Short answers. No sign-up.</p></div>
   <section class="location-panel" aria-label="Location">
     <div class="location-line"><span class="pin">⌖</span><div><small>Location</small><strong id="place">Not selected yet</strong><small id="location-status" class="location-status" aria-live="polite">Choose a city or find your location</small></div><button id="locate" class="link-btn" type="button">Find me</button></div>
@@ -27,20 +27,15 @@ app.innerHTML = `
 
 const versionBadge = document.querySelector('#app-version');
 
-async function showBuildVersion() {
-  try {
-    const response = await fetch(new URL('./version.json', document.baseURI), { cache: 'no-store' });
-    if (!response.ok) throw new Error('Build information unavailable');
-    const build = await response.json();
-    if (typeof build.version !== 'string') throw new Error('Invalid build version');
-    const hash = typeof build.commit === 'string' && /^[a-f0-9]{7,40}$/i.test(build.commit)
-      ? build.commit.slice(0, 7)
-      : null;
-    versionBadge.textContent = `v${build.version}${hash ? ` · ${hash}` : ''}`;
-    versionBadge.title = [`Version: ${build.version}`, hash && `Commit: ${build.commit}`, build.builtAt && `Built: ${build.builtAt}`].filter(Boolean).join(' | ');
-  } catch {
-    versionBadge.title = 'Build information unavailable';
-  }
+function showBuildVersion() {
+  // This metadata is bundled with the exact JavaScript currently running, even offline.
+  const build = __BUILD_INFO__;
+  const hash = typeof build.commit === 'string' && /^[a-f0-9]{7,40}$/i.test(build.commit)
+    ? build.commit.slice(0, 7)
+    : null;
+  versionBadge.textContent = `v${build.version}${hash ? ` · ${hash}` : ''}`;
+  versionBadge.title = [`Version: ${build.version}`, hash && `Commit: ${build.commit}`, `Built: ${build.builtAt}`]
+    .filter(Boolean).join(' | ');
 }
 showBuildVersion();
 
