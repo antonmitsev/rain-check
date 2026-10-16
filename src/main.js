@@ -16,7 +16,7 @@ app.innerHTML = `
     <form id="city-form"><label for="city">Or enter a city</label><div class="city-input"><input id="city" name="city" placeholder="e.g. London" autocomplete="address-level2" required minlength="2"><button type="submit">Select</button></div></form>
   </section>
   <div class="actions"><button id="now" class="action" type="button"><span class="action-symbol">☔</span><span>Is it raining?</span><small>Right now</small></button><button id="until" class="action" type="button"><span class="action-symbol">◷</span><span>When will it stop?</span><small>Next few hours</small></button></div>
-  <section id="answer" class="answer" aria-live="polite" role="status"><span class="answer-label">ANSWER</span><p>Select местоположение и натисни бутон.</p></section>
+  <section id="answer" class="answer" aria-live="polite" role="status"><span class="answer-label">ANSWER</span><p>Choose a location and click a button.</p></section>
   <footer>Weather data: <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a> · Local conditions may differ.</footer>
 </section>`;
 
@@ -40,7 +40,7 @@ function setBusy(value) {
 function setLocation(latitude, longitude, name) {
   location = {latitude, longitude, name};
   place.textContent = name;
-  render('Готово. Select въпрос.');
+  render('Ready. Choose a question.');
 }
 function getCurrentPosition() {
   return new Promise((resolve, reject) => {
@@ -129,7 +129,7 @@ function rainUntil(data) {
 }
 async function ask(kind) {
   if (busy) return;
-  if (!location) return render('Първо избери „Find me“ или въведи град.', 'error');
+  if (!location) return render('First select Find me or enter a city.', 'error');
   setBusy(true);
   render('Checking the forecast…', 'loading');
   try {
