@@ -20,7 +20,7 @@ A single-page application showing the selected location, one weather check butto
 | F02 | Manual city fallback | A city search works when geolocation is blocked or unavailable. After 3 typed characters, show selectable city suggestions with administrative region and country. |
 | F03 | Current rainfall and onset | If currently raining, report it. If not, find the first future hourly rain/showers amount of at least 0.1 mm and show its approximate time and day. State clearly when no rain is forecast or hourly data is unavailable. Never present a forecast as an on-site observation. |
 | F04 | Rain-stop estimate | Estimate an approximate stop time using the hourly forecast. |
-| F05 | Clear responses | Prominent weather-phase labels use the requested Bulgarian words (ВАЛИ, СУХО, СПИРА В, ЗАПОЧВА В). Supporting forecast details remain in English and do not claim exact change times. |
+| F05 | English-only interface | All user-facing labels and status messages are in English. Weather phases read RAINING / STOPS AT or DRY / STARTS AT, with no invented exact time. |
 | F06 | Weather cache | Cache responses by approximate coordinates for up to 10 minutes. |
 | F07 | Error handling | Explain network, geolocation, and unavailable-data failures. |
 | F08 | PWA installation | Provide a valid web manifest, 192px and 512px icons, standalone display mode, and a registered service worker. |
@@ -32,8 +32,8 @@ A single-page application showing the selected location, one weather check butto
 | F14 | Persistent offline forecasts | Save the last selected location and up to eight time-stamped weather snapshots in localStorage. Persist the rain-stop forecast and the next expected rain onset for dry conditions. Offline answers include historical timestamps and use an explicit date for future rain estimates, without spinners or API requests. |
 | F15 | Compact hero heading | Render "Do I need an umbrella?" on one line, with compact typography and subtle positive letter spacing. Place `RAIN AT A GLANCE | TWO QUESTIONS. SHORT ANSWERS. NO SIGN-UP.` above it, with no separate descriptive paragraph. |
 | F16 | Enforce HTTPS on Apache | Include `public/.htaccess` in the production build to redirect HTTP requests to HTTPS with HTTP 301, preserving the host, path, and query string. Require an available SSL/TLS certificate. |
-| F17 | Unified results UI | Keep one **Check weather** button and one two-phase summary. Use a continuous blue-to-yellow gradient for wet-to-dry and yellow-to-blue for dry-to-wet. Display bold Bulgarian phase labels and large approximate change time, with fetch/observation/forecast details in small text. Historical offline snapshots reuse the same summary without requests. |
-| F18 | Three recent weather checks | Show the last three unique checked locations, newest first, including last check time, current rain state and saved upcoming change. Rechecking a location replaces its previous entry and moves it to the top. Store the entries in localStorage alongside offline weather snapshots. Clicking a history entry shows the exact saved result without GPS, geocoding, weather API calls, or a loader. Silent prefetch is not a new history entry. |
+| F17 | Unified results UI | Keep one **Check weather** button with no secondary caption and one gradient summary. Use blue-to-yellow for wet-to-dry, yellow-to-blue for dry-to-wet, and a single-state color when no change is forecast. Prominently display English condition/transition labels and approximate change time. Reduce metadata to APPROXIMATE · Fetched on [date/time] (prefix CACHED when offline). Do not repeat verbose forecast sentences or observation timestamps in the UI. |
+| F18 | Three recent weather checks | Hide the entire recent-check section if the history is empty. Otherwise show the last three unique checked locations, newest first, with short forecast summaries rather than full sentences. Rechecking a location replaces its previous entry and moves it to the top. Persist history in localStorage and open entries without GPS, geocoding, API requests, or loaders. Silent prefetch is not a history entry. |
 | F19 | Transient feedback toast | Keep an accessible top toast with no reserved layout height. Animate entry from above and dismissal toward the left, respecting reduced-motion preferences. |
 | F20 | Bottom footer layout | Use a full-height flex column so credits sit at the viewport bottom when content is short, but follow naturally after longer content without overlaying results. |
 | F21 | Responsive history and deletion | The app container uses `width: 100%; max-width: 580px` and stays centered on desktop. History cards must fit that width and narrower mobile viewports, wrapping long city names or forecast text. Place an accessible × button inside each card's top-right corner (not beside the card), without nesting interactive buttons. Removing an entry changes only the history store and does not delete cached forecasts or fetch weather. |
@@ -59,12 +59,12 @@ A single-page application showing the selected location, one weather check butto
 
 ## 6. Acceptance criteria
 
-- One Check weather button updates both phases of the single gradient summary.
+- One Check weather button, without a subtitle, updates both phases of the single gradient summary with English-only labels.
 - Four successful checks across four locations leave only three entries, in newest-first order.
 - Rechecking the same coordinates replaces the old entry; opening that entry does not reorder it.
 - Clicking any recent check online or offline fills the single summary from its stored snapshot without API calls.
 - Silent weather prefetches and merely selecting a location do not create history records.
-- The history survives a page reload, and old localStorage records without a history remain usable.
+- Empty history does not reserve space; a non-empty history has short status summaries and survives page reloads.
 - Narrow mobile widths have no horizontal scrolling even for long history entries. Each entry has a separate × control that removes the entry without a new weather request or deleting the cached forecast.
 - After deploying a complete new production build, an online browser with the updated PWA listener loads the new build after the next worker activates, without manual site-data clearing.
 - A successful GPS lookup visibly confirms the resolved city/region/country or falls back to coordinates.
@@ -83,7 +83,7 @@ A single-page application showing the selected location, one weather check butto
 - Refresh the installed PWA offline: the previously selected location and saved forecast are available.
 - With no saved weather, offline actions show a clear empty-state message.
 - The hero combines the two eyebrow phrases using a pipe, has no paragraph below the heading, and uses positive letter spacing.
-- A temporary top toast enters from above, exits to the left and leaves the layout height unchanged; footer credits sit at the bottom of short pages.
+- Card internals are compact, while margins between major sections allow visual breathing room. The toast floats above content and footer credits stay at the bottom of short pages.
 
 ## 7. Out of scope for v0.1
 
