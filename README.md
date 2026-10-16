@@ -5,17 +5,17 @@ A minimal weather app that checks current rainfall and its next expected change 
 ## Features
 
 - Automatically requests browser geolocation at startup (subject to browser permission); manual city search remains available if location access fails.
-- One **Check weather** button updates **one gradient summary** with two bold phases: **ВАЛИ / СПИРА В [time]** when raining or **СУХО / ЗАПОЧВА В [time]** when dry.
-- **Recent checks** shows the last three distinct checked locations, newest first. Rechecking a location replaces its previous entry. Tap an entry to display its saved conditions **without making any network request**.
+- One **Check weather** button updates one compact gradient summary in English: **RAINING → STOPS AT [time]** or **DRY → STARTS AT [time]**.
+- **Recent checks** is hidden when empty. Otherwise it shows up to three distinct locations, newest first, with short labels such as **Starts ~19:00** instead of a full forecast sentence. Opening an entry uses saved data **without any network request**.
 - The app uses a centered, full-width layout capped at **580px** on desktop. History text stays within the card on mobile and desktop, and a discreet **×** button sits **inside the top-right corner** of each history card. Removing a history item does not delete its cached forecast.
-- The background runs **blue → yellow** for wet-to-dry and **yellow → blue** for dry-to-wet. If no reliable transition time exists, the display says so rather than inventing an hour. Saved history uses the same summary layout.
-- Hourly forecasts provide approximate next-rain onset or rain-stop time. Observation time, fetch time, forecast detail, and whether the result is saved are shown in smaller text inside the summary.
+- The background runs **blue → yellow** for wet-to-dry and **yellow → blue** for dry-to-wet. When no transition is forecast, the single-state color remains instead of implying a change. Unknown times are not invented.
+- Only the essential status and approximate time are prominent. A single compact line below reads **APPROXIMATE · Fetched on ...**, prefixed with **CACHED** for stored forecasts. The verbose forecast sentence and redundant observation-time line are no longer shown.
 - Open-Meteo API, 10-minute in-memory cache, no user accounts, backend, database, or AI service.
 - Responsive interface; deployable as a static website on Apache/cPanel.
 - Installable PWA with an offline app shell and **saved weather snapshots**, available without a network.
 - A successful weather fetch is saved on-device along with the selected location, its observation timestamp, and the time it was saved. Up to eight locations are retained; the saved data is always labeled as historical, never live.
 - No persistent status banner while online: the connectivity warning appears only for **OFFLINE** or **SERVER UNREACHABLE**. The amber offline theme is retained for those states. The origin check is a network-only fetch of `version.json`; a server outage does not automatically disable external weather services.
-- Status, loading, and error messages appear as **top toasts** that slide down from above and exit to the left when dismissed. Motion is reduced when the operating system requests reduced animations; the footer is pushed to the bottom of short pages without covering longer content. The hero eyebrow reads `RAIN AT A GLANCE | TWO QUESTIONS. SHORT ANSWERS. NO SIGN-UP.`, and the compact headline uses subtle positive letter spacing.
+- The Check weather button has no secondary caption. Compact padding is used inside cards and controls, with larger gaps between the major sections. Status, loading, and error messages appear as **top toasts** that slide down from above and exit to the left when dismissed. Motion is reduced when the operating system requests reduced animations; the footer is pushed to the bottom of short pages without covering longer content. The hero eyebrow reads `RAIN AT A GLANCE | TWO QUESTIONS. SHORT ANSWERS. NO SIGN-UP.`, and the compact headline uses subtle positive letter spacing.
 
 ## Run locally
 
