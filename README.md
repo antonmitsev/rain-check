@@ -7,6 +7,7 @@ A minimal weather app that checks current rainfall and its next expected change 
 - Automatically requests browser geolocation at startup (subject to browser permission); manual city search remains available if location access fails.
 - One **Check weather** button updates **one gradient summary** with two bold phases: **ВАЛИ / СПИРА В [time]** when raining or **СУХО / ЗАПОЧВА В [time]** when dry.
 - **Recent checks** shows the last three distinct checked locations, newest first. Rechecking a location replaces its previous entry. Tap an entry to display its saved conditions **without making any network request**.
+- The recent-check list wraps long location names and forecasts within narrow mobile screens. Each row has a discreet **×** button to remove that entry from history without deleting its cached forecast.
 - The background runs **blue → yellow** for wet-to-dry and **yellow → blue** for dry-to-wet. If no reliable transition time exists, the display says so rather than inventing an hour. Saved history uses the same summary layout.
 - Hourly forecasts provide approximate next-rain onset or rain-stop time. Observation time, fetch time, forecast detail, and whether the result is saved are shown in smaller text inside the summary.
 - Open-Meteo API, 10-minute in-memory cache, no user accounts, backend, database, or AI service.
@@ -34,6 +35,13 @@ npm run build
 Upload **all contents of `dist/`**, including `precache-manifest.json` and hidden `.htaccess`, to the domain or subdomain's document root. The Apache `.htaccess` redirects HTTP traffic to HTTPS with a permanent 301, preserving the requested host, path, and query string. Ensure TLS is configured first. Do not upload `src/` or `node_modules/`.
 
 **[Apache, cPanel, DNS and optional Git deployment instructions](docs/hosting-cpanel.md)**
+
+## Deploying a fresh PWA build
+
+Every `npm run build` generates a new worker cache ID and `version.json`. Upload the **entire** `dist/` folder contents, including the hidden `.htaccess`, `sw.js`, `precache-manifest.json`, `version.json`, `index.html`, and the hashed `assets/`. Apache's `.htaccess` sends `Cache-Control: no-store` for the HTML entrypoint and PWA update metadata (not the hashed assets).
+
+On production pages, the app checks for new service workers on load, when refocused, on reconnect, and when the tab becomes visible. A newly activated worker precaches the updated app and automatically reloads an already-controlled online page. This preserves offline snapshots and history in localStorage. The first deployment of this mechanism may still require **one manual online reload** of an older installed PWA because older running JavaScript has no update listener. If a CDN/proxy serves old files, purge its cache; do not clear browser site data unless troubleshooting. See the [PWA guide](docs/pwa.md).
+
 
 ## Connectivity status
 
