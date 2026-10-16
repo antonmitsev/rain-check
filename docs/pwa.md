@@ -28,10 +28,10 @@ Install prompts are browser-dependent. RainCheck does not display a custom insta
 RainCheck hides its connection banner during normal online operation to keep the forecast higher on the page. The warning banner appears only while offline or when the origin server is unreachable:
 
 - **ONLINE** — no banner is displayed; the standard blue theme is used.
-- **OFFLINE** — `navigator.onLine` reports offline; a warm amber theme and explicit offline message appear. The Check weather button stays active and fills both cards with saved observations or forecasts instantly; city search and GPS lookup do not issue requests.
+- **OFFLINE** — `navigator.onLine` reports offline; a warm amber theme and explicit offline message appear. The Check weather button stays active and fills the single gradient weather summary with saved observations or forecasts instantly; city search and GPS lookup do not issue requests.
 - **SERVER UNREACHABLE** — the browser may still have internet but a network-only request to this app's `version.json` fails (for example, after stopping `npm run preview`). The warm warning theme appears. Live weather actions remain enabled because third-party APIs may still work.
 
-The browser's `online` and `offline` events update the warning state immediately. Other status, loading, and error messages are displayed in a temporary, automatically dismissed top toast instead of a permanent Answer panel. The app rechecks origin reachability on startup and when the window regains focus or visibility. Connectivity signals do not guarantee that an individual weather provider is working.
+The browser's `online` and `offline` events update the warning state immediately. Other status, loading, and error messages appear in a top toast that enters from above, exits to the left and respects reduced-motion preferences. The layout uses a bottom-aligned, non-overlapping footer on short pages. The app rechecks origin reachability on startup and when the window regains focus or visibility. Connectivity signals do not guarantee that an individual weather provider is working.
 
 ## Recent checks history
 
@@ -43,7 +43,7 @@ Selecting a history item displays the snapshot captured on its last check, with 
 
 During installation, the service worker reads `precache-manifest.json` and caches HTML, icons, the manifest, and **all hashed production JavaScript/CSS assets** before activating. Once installation has finished and the page has been reloaded online, the PWA can launch offline without missing scripts.
 
-**Offline data is historical.** After an online weather fetch, the app saves a time-stamped observation, the computed rain-stop forecast, and (when dry) the next expected rain onset in browser localStorage, along with the last selected location. Offline actions read these snapshots immediately without loaders or network calls. The blue/yellow status cards display wet/dry conditions and the next predicted change. The display identifies the time of the observation (when provided), the time the snapshot was saved, and that it is **not live**. A previously viewed place can be restored when launching the PWA offline. If no snapshot exists, a clear empty-state message is shown.
+**Offline data is historical.** After an online weather fetch, the app saves a time-stamped observation, the computed rain-stop forecast, and (when dry) the next expected rain onset in browser localStorage, along with the last selected location. Offline actions read these snapshots immediately without loaders or network calls. The single blue-to-yellow or yellow-to-blue gradient displays wet/dry conditions and the next predicted change. Prominent phase labels are in Bulgarian; forecast and fetch metadata appear in smaller text. The display identifies the time of the observation (when provided), the time the snapshot was saved, and that it is **not live**. A previously viewed place can be restored when launching the PWA offline. If no snapshot exists, a clear empty-state message is shown.
 
 Live rain observations and fresh forecasts still need connectivity. Offline city search and geolocation lookup do not start new requests. Cached weather is never automatically presented as current conditions. Saved predicted rain start times include an absolute calendar date so they remain meaningful on later offline days. Snapshots saved by older versions remain readable, but may lack a next-rain estimate. External Google Fonts may be unavailable offline; system font fallbacks are provided.
 
@@ -73,10 +73,10 @@ After deployment, revisit/reload the page online to acquire updated assets. Brow
 - [ ] Set DevTools → Network to Offline (or stop the preview server) and reload: the UI must render.
 - [ ] Do not use `npm run dev` as an offline test; Vite development modules need a running server.
 - [ ] While online, no ONLINE banner consumes space; with DevTools → Network → Offline, the OFFLINE warning banner and amber theme appear and Check weather stays enabled.
-- [ ] First fetch a forecast online, then go offline and click Check weather. Both cards and the saved timestamp appear immediately, without a loading state or API traffic.
+- [ ] First fetch a forecast online, then go offline and click Check weather. The gradient summary and saved timestamp appear immediately, without a loading state or API traffic.
 - [ ] Check four different places online: only the last three appear under Recent checks.
 - [ ] Check a previously listed place again: only its newest entry remains, now first.
-- [ ] Select a Recent checks item while online and offline: its saved cards appear instantly, with **zero requests** in DevTools → Network.
+- [ ] Select a Recent checks item while online and offline: its saved gradient summary appears instantly, with **zero requests** in DevTools → Network.
 - [ ] Reload the PWA offline: the three recent checks persist, and merely opening them does not reorder the list.
 - [ ] If the saved snapshot reports dry weather, the offline **Is it raining?** answer includes the saved next-rain prediction with an explicit calendar date (when forecast data was available).
 - [ ] Close and reopen the PWA offline: saved location and weather are restored.
