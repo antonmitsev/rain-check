@@ -23,7 +23,7 @@ A single-page application showing the selected location, one weather check butto
 | F05 | English-only interface | All user-facing labels and status messages are in English. Weather phases read RAINING / STOPS AT or DRY / STARTS AT, with no invented exact time. |
 | F06 | Weather cache | Cache responses by approximate coordinates for up to 10 minutes. |
 | F07 | Error handling | Explain network, geolocation, and unavailable-data failures. |
-| F08 | PWA installation | Provide a valid web manifest, 192px and 512px icons, standalone display mode, and a registered service worker. |
+| F08 | PWA installation | Provide a valid manifest, 192px and 512px PNG icons, a dedicated opaque 180px Apple touch PNG with an explicit HTML link, standalone display mode, a registered Service Worker, and a reproducible icon generation step before builds. |
 | F09 | Offline app shell | Service worker installation precaches HTML and all production JS/CSS assets so the UI can launch offline without a blank screen. Live weather and geocoding still require connectivity. |
 | F10 | Build version endpoint | Each production build emits a public `version.json` with package version, UTC build timestamp and optional Git commit. |
 | F11 | Visible build identity | The UI header uses metadata bundled into the running JavaScript at build time, showing package version and the first seven commit characters, also offline. The online `version.json` independently reports the deployed build. |
@@ -39,6 +39,8 @@ A single-page application showing the selected location, one weather check butto
 | F21 | Responsive history and deletion | The app container uses `width: 100%; max-width: 580px` and stays centered on desktop. History cards must fit that width and narrower mobile viewports, wrapping long city names or forecast text. Place an accessible × button inside each card's top-right corner (not beside the card), without nesting interactive buttons. Removing an entry changes only the history store and does not delete cached forecasts or fetch weather. |
 | F22 | Automatic PWA refresh | Each production build produces a distinct precache identity. Apache disables HTTP caching for HTML and PWA metadata; the app checks for new service workers on load and return to an active online state, then reloads controlled pages when the new complete worker activates. Offline weather history remains intact. |
 
+| F23 | Responsive landscape | Preserve the centered 580px-wide portrait/single-column layout. In landscape at widths 740px and above, use a two-column workspace (location and city search left; primary action and forecast right) with a centered 920px max-width shell, safe-area padding, and responsive recent history. Below the threshold, retain single column without horizontal scrolling. |
+| F24 | iOS Home Screen icon | Build an opaque 180×180 `apple-touch-icon.png` from the shared vector source; link it in HTML, include it in the production precache and `dist/icons/`, and document removal/re-addition of an old letter-only iOS shortcut without clearing local data. |
 
 ## 4. Non-functional requirements
 
@@ -61,6 +63,8 @@ A single-page application showing the selected location, one weather check butto
 ## 6. Acceptance criteria
 
 - One Check weather button, without a subtitle, updates both phases of the single gradient summary with English-only labels.
+- Turning a wide-screen device to landscape puts search/location left and Check weather/status right without horizontal overflow; portrait remains at the 580px maximum.
+- iOS Add to Home Screen uses the actual 180px PNG icon, not a letter fallback, after redeploying and recreating an old shortcut.
 - Four successful checks across four locations leave only three entries, in newest-first order.
 - Rechecking the same coordinates replaces the old entry; opening that entry does not reorder it.
 - Clicking any recent check online or offline fills the single summary from its stored snapshot without API calls.
