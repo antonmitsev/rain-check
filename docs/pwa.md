@@ -32,7 +32,7 @@ The service worker only handles same-origin GET requests; it deliberately does n
 
 ## Online version check
 
-Production builds include a static `version.json` endpoint (see [deployment guide](hosting-cpanel.md)). The service worker explicitly bypasses its cache for this file, so it can be requested separately from the installed app shell to identify the deployment. The UI header also shows the version and first seven characters of the Git commit hash from this endpoint. The file reports the build timestamp, not the installation or deployment time. No automatic update prompt is included in this version. Updating `CACHE_NAME` invalidates the old app-shell cache on service-worker activation.
+Production builds include a static `version.json` endpoint (see [deployment guide](hosting-cpanel.md)). The service worker explicitly bypasses its cache for this file, so it can be requested separately from the installed app shell to identify the deployment. The UI header uses version metadata embedded in its own JavaScript bundle, rather than querying the endpoint. This reliably identifies the running version while offline. The online endpoint identifies the deployed version, which can be newer. The file reports the build timestamp, not the installation or deployment time. No automatic update prompt is included in this version. Updating `CACHE_NAME` invalidates the old app-shell cache on service-worker activation (currently `raincheck-app-v3`).
 
 ## Update behavior
 
