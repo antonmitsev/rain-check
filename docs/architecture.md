@@ -61,13 +61,21 @@ This is a simple product heuristic, not a validated meteorological nowcasting te
 - Open-Meteo offers free non-commercial access under its applicable terms.
 - ChatGPT Free is not a programmable API. This MVP does not require an LLM.
 
+## Persistent offline weather snapshots
+
+The `src/offline-cache.js` module stores the most recently selected place and up to eight compact, time-stamped weather snapshots in browser localStorage. Coordinates are rounded to three decimals before persistence. Each snapshot contains the time downloaded, the provider's current weather timestamp (when available), the observed rain/no-rain state, and the rain-stop forecast as computed at fetch time. A new location triggers silent weather prefetch; later button presses reuse the existing 10-minute in-memory cache.
+
+When `navigator.onLine` is false, the UI keeps the weather buttons clickable and immediately formats the matching saved snapshot. No loader, API request, GPS lookup, or suggestion search is started. Any inflight weather and city requests are aborted when the offline event occurs. When the app starts offline, it restores the last saved location and presents the saved conditions, if available. A missing snapshot produces an informative empty state; an online provider failure can also fall back to saved data, clearly marked historical. localStorage access failures are tolerated without breaking the app.
+
+The `src/offline-cache.js` helpers have unit tests in `tests/offline-cache.test.js`, executed with `npm test`.
+
 ## Build identification
 
 The custom Vite plugin in `vite.config.js` emits `version.json` into the production bundle at build time. This static file contains the semantic version from `package.json`, the UTC build timestamp, and Git HEAD or CI-provided SHA when available. No server-side runtime is needed. The service worker bypasses its cache for this endpoint. A single build metadata object is generated during Vite configuration. The build injects it into the JavaScript bundle using `define: { __BUILD_INFO__: ... }` and emits the same object as `dist/version.json`. The UI header reads bundled `__BUILD_INFO__`, so its version and seven-character commit hash always identify the actual running JavaScript, even when offline. It shows only the version if the commit is unavailable. In contrast, the network-only `version.json` endpoint identifies the currently deployed build and may differ from a cached PWA.
 
 ## Connectivity state
 
-A persistent UI banner and CSS theme are controlled by browser `online`/`offline` events and `navigator.onLine`. Device offline mode disables weather and city search requests and shows a warm warning theme. An additional network-only request to `version.json` checks the app origin on production startup, focus, and tab visibility restoration. A failed origin request is displayed as **SERVER UNREACHABLE** (same warning theme), but does not disable external weather APIs because they may remain available independently. The check is not run in Vite development mode. Origin reachability is an indicator, not definitive proof that Open-Meteo is available.
+A persistent UI banner and CSS theme are controlled by browser `online`/`offline` events and `navigator.onLine`. Device offline mode bypasses live requests but leaves cached-weather actions responsive and shows a warm warning theme. An additional network-only request to `version.json` checks the app origin on production startup, focus, and tab visibility restoration. A failed origin request is displayed as **SERVER UNREACHABLE** (same warning theme), but does not disable external weather APIs because they may remain available independently. The check is not run in Vite development mode. Origin reachability is an indicator, not definitive proof that Open-Meteo is available.
 
 ## PWA architecture
 
