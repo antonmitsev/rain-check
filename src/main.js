@@ -27,7 +27,7 @@ app.innerHTML = `
     <strong id="connection-label">ONLINE</strong>
     <span id="connection-description">Live weather available</span>
   </div>
-  <div class="hero"><div class="eyebrow">RAIN AT A GLANCE</div><h1>Do I need an <em>umbrella?</em></h1><p>Two questions. Short answers. No sign-up.</p></div>
+  <div class="hero"><div class="eyebrow">RAIN AT A GLANCE</div><h1>Do I need an <em>umbrella?</em></h1><p>One check. Two answers. No sign-up.</p></div>
   <section class="location-panel" aria-label="Location">
     <div class="location-line"><span class="pin">⌖</span><div><small>Location</small><strong id="place">Not selected yet</strong><small id="location-status" class="location-status" aria-live="polite">Choose a city or find your location</small></div><button id="locate" class="link-btn" type="button">Find me</button></div>
     <form id="city-form"><label for="city">Or enter a city</label><div class="city-input"><input id="city" name="city" placeholder="e.g. London" autocomplete="address-level2" required minlength="2"><button type="submit">Search</button></div><div id="suggestions" class="suggestions" role="listbox" aria-label="City suggestions" hidden></div></form>
@@ -265,13 +265,13 @@ function setLocation(latitude, longitude, name, source = 'city') {
   cityInput.value = source === 'gps' ? '' : name;
   clearSuggestions();
   updateCard(currentCard, '#current-badge', '#current-title', '#current-detail',
-    'neutral', 'CURRENT', 'Waiting for weather', 'Checking the selected location.');
+    'neutral', 'CURRENT', 'Waiting for weather', 'Press Check weather to see the current conditions.');
   updateCard(forecastCard, '#forecast-badge', '#forecast-title', '#forecast-detail',
     'neutral', 'FORECAST', 'Waiting for forecast', 'The next change will appear here.');
   if (!navigator.onLine) {
     showSavedWeather();
   } else {
-    render('Location confirmed. Choose a question.', 'success');
+    render('Location confirmed. Press Check weather for the latest forecast.', 'success');
     // Prefetch the first forecast silently so it is available for a later offline launch.
     void getWeather(location).catch(() => {});
   }
