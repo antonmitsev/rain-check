@@ -5,23 +5,35 @@ RainCheck is an installable Progressive Web App (PWA) built with Vite and vanill
 ## Included components
 
 - `public/manifest.webmanifest`: application name, relative scope/start URL, standalone mode, theme, and 192×192/512×512 PNG icons.
-- `public/icons/`: home-screen icons.
+- `public/icons/app-icon.svg`: RainCheck's shared vector artwork, from which PNG assets are generated.
+- `scripts/prepare-icons.mjs`: uses `@resvg/resvg-js` to build opaque **180×180 Apple touch**, **192×192 / 512×512 Web Manifest**, and **32×32 favicon** PNGs automatically.
+- `public/icons/`: generated PNG icons are included in the production build and the service-worker precache.
 - `public/sw.js`: production service worker with build-specific cache identity and complete app-shell precaching.
 - `scripts/prepare-pwa.mjs`: postbuild script that lists hashed `dist/assets/` files, generates `dist/precache-manifest.json`, and embeds the build ID in `dist/sw.js`.
 - `index.html`: manifest, favicon, Apple touch icon, and mobile metadata.
 - `src/main.js`: registers the service worker after page load.
 
-Files under `public/` are copied to `dist/` by Vite. `npm run build` runs `vite build && node scripts/prepare-pwa.mjs`. Running `vite build` alone does not finish PWA packaging. The development server does not register the service worker.
+Files under `public/` are copied to `dist/` by Vite. `npm run build` runs `node scripts/prepare-icons.mjs && vite build && node scripts/prepare-pwa.mjs`. Running `vite build` alone does not finish PWA packaging. The development server does not register the service worker.
 
 ## Installation
 
 1. Build and deploy the application using [Apache/cPanel instructions](hosting-cpanel.md).
 2. Open it over **HTTPS** on a supported browser and allow the initial page to load.
 3. Android Chrome: use the browser's **Install app** or **Add to Home screen** option if offered.
-4. iOS Safari: open **Share → Add to Home Screen** (menu labels vary by iOS release).
+4. iOS Safari: open **Share → Add to Home Screen** (menu labels vary by iOS release). The app advertises a dedicated opaque `./icons/apple-touch-icon.png` at **180×180** and an Apple web-app title.
 5. Desktop Chromium browsers: use the browser's install control when available.
 
 Install prompts are browser-dependent. RainCheck does not display a custom installation prompt.
+
+### iPhone icon troubleshooting
+
+If iOS installed RainCheck with a single **R** instead of its icon, confirm that the newly deployed `https://raincheck.tonymitsev.com/icons/apple-touch-icon.png` returns the generated **180×180 PNG**. `index.html` must contain `<link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png">`; Web Manifest icons alone are not a reliable iOS Home Screen fallback. `npm run build` creates these files from the shared SVG and the postbuild precache includes them.
+
+For an **already installed** Home Screen icon, remove the shortcut and add it again from Safari after deploying the build. The Home Screen icon may be retained across ordinary Service Worker updates. **Removing a shortcut is not the same as clearing Safari website data**; do not erase localStorage and saved forecasts to update an icon.
+
+### Responsive landscape mode
+
+Portrait keeps a centered **580px max-width** single-column layout. On landscape viewports at least **740px** wide, the shell expands up to **920px**, with location and city search on the **left**, the **Check weather** button and unified forecast on the **right**, and recent history below. The layout retains min-width guards, safe-area padding for iPhone, natural vertical scrolling on short-height landscape screens, and responsive history columns. Narrower landscape viewports stay single-column.
 
 ## Connection indicator and theme
 
@@ -68,10 +80,12 @@ The production app registers with `updateViaCache: 'none'`, explicitly checks fo
 ## Deployment checklist
 
 - [ ] `npm run build` succeeds and generates `dist/precache-manifest.json`.
+- [ ] A dedicated 180×180 Apple touch PNG and 32×32 favicon are generated and included in the PWA precache, with an explicit apple-touch-icon HTML link.
+- [ ] Landscape uses two columns at suitable widths, with 920px shell cap and preserved mobile/portrait width; all controls stay within viewport.
 - [ ] `dist/sw.js` has a build-specific cache name with no `__CACHE_VERSION__` placeholder.
 - [ ] All JS and CSS files in `dist/assets/` appear in `precache-manifest.json`.
 - [ ] HTTPS works.
-- [ ] `index.html`, `manifest.webmanifest`, `sw.js`, `icons/icon-192.png`, `icons/icon-512.png`, and `assets/` are present in Document Root.
+- [ ] `index.html`, `manifest.webmanifest`, `sw.js`, `icons/apple-touch-icon.png`, `icons/favicon-32.png`, `icons/icon-192.png`, `icons/icon-512.png`, and `assets/` are present in Document Root.
 - [ ] In DevTools → Application → Manifest, the icon and manifest are detected.
 - [ ] In DevTools → Application → Service Workers, the worker is active and controls the page after reload.
 - [ ] Run `npm run build && npm run preview`, open the app online, wait until the service worker activates, and reload online.
