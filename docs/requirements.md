@@ -18,7 +18,7 @@ A single-page application showing the selected location, two action buttons, and
 | --- | --- | --- |
 | F01 | Geolocation | Automatically attempt location discovery when the app starts, obtain latitude and longitude after permission is granted. Reverse-geocode the coordinates to display a readable location name and an explicit confirmation. If reverse geocoding fails, display coordinates instead. |
 | F02 | Manual city fallback | A city search works when geolocation is blocked or unavailable. After 3 typed characters, show selectable city suggestions with administrative region and country. |
-| F03 | Is it raining? | Display current estimated rainfall conditions without presenting forecast values as on-site measurements. |
+| F03 | Is it raining? | If currently raining, report it. If not, find the first future hourly rain/showers amount of at least 0.1 mm and show its approximate time and day. State clearly when no rain is forecast or hourly data is unavailable. Never present a forecast as an on-site observation. |
 | F04 | When will it stop raining? | Estimate an approximate stop time using the hourly forecast. |
 | F05 | English responses | Responses are brief and do not claim exact stop times. |
 | F06 | Weather cache | Cache responses by approximate coordinates for up to 10 minutes. |
@@ -29,7 +29,7 @@ A single-page application showing the selected location, two action buttons, and
 | F11 | Visible build identity | The UI header uses metadata bundled into the running JavaScript at build time, showing package version and the first seven commit characters, also offline. The online `version.json` independently reports the deployed build. |
 | F12 | Project credits | The footer links to tonymitsev.com and OpenAI as a transparent AI-assisted development acknowledgment, without suggesting official endorsement. |
 | F13 | Connectivity indication | Show a persistent connection banner and warm warning theme when offline or when the origin server is unreachable. Keep weather actions responsive while offline. |
-| F14 | Persistent offline forecasts | Save the last selected location and up to eight time-stamped weather snapshots in localStorage. Weather buttons return the matching saved observation or rain-stop forecast without spinners or API requests when offline. Identify historical data clearly and show a helpful message when none exists. |
+| F14 | Persistent offline forecasts | Save the last selected location and up to eight time-stamped weather snapshots in localStorage. Persist the rain-stop forecast and the next expected rain onset for dry conditions. Offline answers include historical timestamps and use an explicit date for future rain estimates, without spinners or API requests. |
 | F15 | Compact hero heading | Render "Do I need an umbrella?" without an explicit line break and with smaller responsive typography. |
 | F16 | Enforce HTTPS on Apache | Include `public/.htaccess` in the production build to redirect HTTP requests to HTTPS with HTTP 301, preserving the host, path, and query string. Require an available SSL/TLS certificate. |
 
@@ -58,6 +58,7 @@ A single-page application showing the selected location, two action buttons, and
 - Denied geolocation permission is handled explicitly.
 - No invented or falsely precise stop times.
 - Repeated requests within 10 minutes reuse cached data.
+- Dry weather with predicted rain displays the next approximate rain time; rain tomorrow shows a day indicator; missing forecasts never produce invented times.
 - The production application runs as a static website without a backend.
 - After one successful online visit, the application shell is available offline.
 - PWA installation works on supported browsers under HTTPS.
