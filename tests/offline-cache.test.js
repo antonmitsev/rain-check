@@ -54,3 +54,30 @@ test('keeps no more than eight recent weather snapshots', () => {
   assert.equal(getWeatherSnapshot({latitude:40,longitude:20,name:'Town'},store),null);
   assert.ok(getWeatherSnapshot({latitude:49,longitude:20,name:'Town'},store));
 });
+
+test('keeps the upcoming rain estimate in a dry-weather snapshot for offline use', () => {
+  const store = storage();
+  const time = Date.now() - 30_000;
+  saveWeatherSnapshot(sofia, {
+    savedAt: time,
+    raining: false,
+    observedAt: '2026-10-16T14:00',
+    stopForecast: 'It was not raining.',
+    nextRainForecast: 'Rain was forecast to start around 18:00 today (approximate hourly forecast).'
+  }, store);
+  const snapshot = getWeatherSnapshot(sofia, store);
+  const message = formatCachedWeather(snapshot, 'now');
+  assert.match(message, /No rain was reported/);
+  assert.match(message, /Rain was forecast to start around 18:00/);
+  assert.match(message, /not a live observation or forecast/);
+});
+
+test('supports snapshots created before next-rain forecasting was added', () => {
+  const store = storage();
+  saveWeatherSnapshot(sofia, {
+    savedAt: Date.now(), raining: false, stopForecast: 'No rain.'
+  }, store);
+  const message = formatCachedWeather(getWeatherSnapshot(sofia, store), 'now');
+  assert.match(message, /No rain was reported/);
+  assert.doesNotMatch(message, /undefined|null/);
+});
