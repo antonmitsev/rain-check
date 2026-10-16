@@ -67,7 +67,7 @@ The custom Vite plugin in `vite.config.js` emits `version.json` into the product
 
 ## PWA architecture
 
-The Vite build copies the files from `public/` directly into `dist/`. `manifest.webmanifest` describes the app and its installable icons; `sw.js` is registered after page load. The service worker caches the application shell and static assets on the same origin and uses network-first HTML navigation with a cached fallback. Cross-origin Open-Meteo and Nominatim requests are deliberately not cached by the service worker; live weather and city search require a network connection. See [PWA guide](pwa.md).
+The Vite build copies the files from `public/` directly into `dist/`. `manifest.webmanifest` describes the app and its installable icons; `sw.js` is registered after page load. After `vite build`, `scripts/prepare-pwa.mjs` generates `precache-manifest.json` from the real hashed output assets and assigns a unique cache name for each build. The service worker precaches the complete application shell, including all JS/CSS files, during installation, then uses network-first navigation with a cached fallback. Development mode does not register a service worker. Cross-origin Open-Meteo and Nominatim requests are deliberately not cached by the service worker; live weather and city search require a network connection. See [PWA guide](pwa.md).
 
 ## Deployment
 
