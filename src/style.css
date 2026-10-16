@@ -8,3 +8,6 @@
 .suggestion-item:last-child{border-bottom:0}
 .suggestion-item:hover,.suggestion-item:focus,.suggestion-item.active{background:#284768;outline:none}
 .suggestion-empty{padding:14px;color:#9fb1c6;font-size:13px}
+
+footer .credits{margin-top:11px;padding-top:11px;border-top:1px solid #283b52;color:#8ca0b8}
+footer .credits a{text-decoration:underline;text-underline-offset:2px}
