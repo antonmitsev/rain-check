@@ -1,0 +1,7 @@
+# Redirect HTTP requests to HTTPS while preserving the host, path, and query string.
+# Apache mod_rewrite must be enabled and .htaccess overrides must be permitted.
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{HTTPS} !=on
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L,NE]
+</IfModule>
