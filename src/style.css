@@ -11,3 +11,26 @@
 
 footer .credits{margin-top:11px;padding-top:11px;border-top:1px solid #283b52;color:#8ca0b8}
 footer .credits a{text-decoration:underline;text-underline-offset:2px}
+
+
+/* Connectivity state: visible in the browser and installed PWA. */
+.connection-banner{display:flex;align-items:center;gap:9px;margin-top:18px;padding:10px 13px;border:1px solid #355769;border-radius:11px;background:#173647;color:#a5e6cc;font-size:12px;line-height:1.4}
+.connection-banner strong{font:700 11px 'DM Sans',system-ui,sans-serif;letter-spacing:1.1px}
+.connection-banner #connection-description{margin-left:auto;color:#c0d5e0;text-align:right}
+.connection-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;background:#64d5a5;box-shadow:0 0 0 3px #64d5a522}
+body{transition:background-color .2s ease}
+body.offline-mode{background:radial-gradient(circle at 80% 0%,#4a3931 0,transparent 42%),#211d22}
+.offline-mode .connection-banner{background:#513827;border-color:#aa7648;color:#ffe2b7}
+.offline-mode .connection-dot{background:#ffb65e;box-shadow:0 0 0 3px #ffb65e33}
+.offline-mode .connection-banner #connection-description{color:#ffdbab}
+.offline-mode .brand-icon,.offline-mode h1 em,.offline-mode .eyebrow{color:#f0b875}
+.offline-mode .location-panel,.offline-mode .answer{background:#322a2b;border-color:#6a5145}
+.offline-mode .action{background:#c8baad;color:#47382e;border-color:#c8baad}
+.offline-mode .action-symbol{color:#8c694a}
+.offline-mode .action small{color:#64594e}
+.offline-mode .answer.offline{border-color:#c38a55;color:#ffe5c4}
+.offline-mode .city-input input{background:#252024;border-color:#756051}
+.offline-mode .link-btn,.offline-mode footer a{color:#f0bb7e}
+.offline-mode .location-status{color:#e4ba7d!important}
+@media(max-width:420px){.connection-banner{flex-wrap:wrap}.connection-banner #connection-description{margin-left:0;width:100%;text-align:left;padding-left:18px}}
+@media(prefers-reduced-motion:reduce){body{transition:none}}
