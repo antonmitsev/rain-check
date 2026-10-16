@@ -28,11 +28,12 @@ A single-page application showing the selected location, one weather check butto
 | F10 | Build version endpoint | Each production build emits a public `version.json` with package version, UTC build timestamp and optional Git commit. |
 | F11 | Visible build identity | The UI header uses metadata bundled into the running JavaScript at build time, showing package version and the first seven commit characters, also offline. The online `version.json` independently reports the deployed build. |
 | F12 | Project credits | The footer links to tonymitsev.com and OpenAI as a transparent AI-assisted development acknowledgment, without suggesting official endorsement. |
-| F13 | Connectivity indication | Show a persistent connection banner and warm warning theme when offline or when the origin server is unreachable. Keep weather actions responsive while offline. |
+| F13 | Connectivity indication | Hide the connectivity banner when online, preserving vertical space. Show the warning banner and warm theme only while offline or when the origin server is unreachable. Keep weather actions responsive while offline. |
 | F14 | Persistent offline forecasts | Save the last selected location and up to eight time-stamped weather snapshots in localStorage. Persist the rain-stop forecast and the next expected rain onset for dry conditions. Offline answers include historical timestamps and use an explicit date for future rain estimates, without spinners or API requests. |
-| F15 | Compact hero heading | Render "Do I need an umbrella?" without an explicit line break and with smaller responsive typography. |
+| F15 | Compact hero heading | Render "Do I need an umbrella?" on one line, with compact typography and subtle positive letter spacing. Place `RAIN AT A GLANCE | TWO QUESTIONS. SHORT ANSWERS. NO SIGN-UP.` above it, with no separate descriptive paragraph. |
 | F16 | Enforce HTTPS on Apache | Include `public/.htaccess` in the production build to redirect HTTP requests to HTTPS with HTTP 301, preserving the host, path, and query string. Require an available SSL/TLS certificate. |
 | F17 | Unified results UI | Replace two question buttons with one **Check weather** button. Display a current status card and a next-change card below. Raining/Wet uses blue backgrounds and matching badges; Dry uses yellow. Next-change card uses the color of the expected future state. Cards work with offline cached observations. |
+| F19 | Transient feedback toast | Replace the permanently visible Answer/Status panel with an accessible fixed-position toast at the top of the screen. Display loading, success, offline, and error messages without shifting content; dismiss them automatically. |
 | F18 | Three recent weather checks | Show the last three unique checked locations, newest first, including last check time, current rain state and saved upcoming change. Rechecking a location replaces its previous entry and moves it to the top. Store the entries in localStorage alongside offline weather snapshots. Clicking a history entry shows the exact saved result without GPS, geocoding, weather API calls, or a loader. Silent prefetch is not a new history entry. |
 
 ## 4. Non-functional requirements
@@ -69,13 +70,14 @@ A single-page application showing the selected location, one weather check butto
 - The production application runs as a static website without a backend.
 - After one successful online visit, the application shell is available offline.
 - PWA installation works on supported browsers under HTTPS.
-- The banner reads ONLINE while connected; changing DevTools to Offline changes it to OFFLINE and changes the theme.
-- Restoring the connection restores the normal theme and enabled weather actions.
+- The ONLINE banner is absent during normal connected operation; switching offline reveals the OFFLINE banner and changes the theme.
+- Restoring the connection hides the warning banner, restores the normal theme, and enables weather actions.
 - If the origin server is stopped but the browser still has internet, the banner reads SERVER UNREACHABLE with the warning theme; weather actions remain enabled because third-party APIs may still be reachable.
 - After one successful online weather fetch, go offline and click Check weather: both cards show saved states and timestamps immediately, with no API request or loader.
 - Refresh the installed PWA offline: the previously selected location and saved forecast are available.
 - With no saved weather, offline actions show a clear empty-state message.
-- The title uses no forced line break and is sized for mobile screens.
+- The hero combines the two eyebrow phrases using a pipe, has no paragraph below the heading, and uses positive letter spacing.
+- A temporary top toast replaces the fixed-height Answer panel for feedback without adding layout height.
 
 ## 7. Out of scope for v0.1
 
