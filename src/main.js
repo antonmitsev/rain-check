@@ -10,14 +10,14 @@ let weatherCache = new Map();
 app.innerHTML = `
 <section class="shell">
   <header><div class="brand"><span class="brand-icon" aria-hidden="true">☁</span> RainCheck</div><span class="version">v0.1</span></header>
-  <div class="hero"><div class="eyebrow">ВРЕМЕТО НА ДВА КЛИКА</div><h1>Да взема ли<br><em>чадър?</em></h1><p>Два въпроса. Кратки отговори. Без регистрация.</p></div>
-  <section class="location-panel" aria-label="Местоположение">
-    <div class="location-line"><span class="pin">⌖</span><div><small>Местоположение</small><strong id="place">Все още не е зададено</strong></div><button id="locate" class="link-btn" type="button">Намери ме</button></div>
-    <form id="city-form"><label for="city">Или въведи град</label><div class="city-input"><input id="city" name="city" placeholder="Например София" autocomplete="address-level2" required minlength="2"><button type="submit">Избери</button></div></form>
+  <div class="hero"><div class="eyebrow">WEATHER IN TWO CLICKS</div><h1>Do I need an<br><em>umbrella?</em></h1><p>Two questions. Short answers. No sign-up.</p></div>
+  <section class="location-panel" aria-label="Location">
+    <div class="location-line"><span class="pin">⌖</span><div><small>Location</small><strong id="place">Not selected yet</strong></div><button id="locate" class="link-btn" type="button">Find me</button></div>
+    <form id="city-form"><label for="city">Or enter a city</label><div class="city-input"><input id="city" name="city" placeholder="e.g. London" autocomplete="address-level2" required minlength="2"><button type="submit">Select</button></div></form>
   </section>
-  <div class="actions"><button id="now" class="action" type="button"><span class="action-symbol">☔</span><span>Вали ли?</span><small>Точно сега</small></button><button id="until" class="action" type="button"><span class="action-symbol">◷</span><span>Докога ще вали?</span><small>Следващите часове</small></button></div>
-  <section id="answer" class="answer" aria-live="polite" role="status"><span class="answer-label">ОТГОВОР</span><p>Избери местоположение и натисни бутон.</p></section>
-  <footer>Прогнозни данни: <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a> · Възможни са локални отклонения.</footer>
+  <div class="actions"><button id="now" class="action" type="button"><span class="action-symbol">☔</span><span>Is it raining?</span><small>Right now</small></button><button id="until" class="action" type="button"><span class="action-symbol">◷</span><span>When will it stop?</span><small>Next few hours</small></button></div>
+  <section id="answer" class="answer" aria-live="polite" role="status"><span class="answer-label">ANSWER</span><p>Select местоположение и натисни бутон.</p></section>
+  <footer>Weather data: <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a> · Local conditions may differ.</footer>
 </section>`;
 
 const place = document.querySelector('#place');
@@ -28,7 +28,7 @@ const actionButtons = [document.querySelector('#now'), document.querySelector('#
 
 function render(message, category = '') {
   answer.className = `answer ${category}`;
-  answer.innerHTML = '<span class="answer-label">ОТГОВОР</span>';
+  answer.innerHTML = '<span class="answer-label">ANSWER</span>';
   const p = document.createElement('p');
   p.textContent = message;
   answer.append(p);
@@ -40,11 +40,11 @@ function setBusy(value) {
 function setLocation(latitude, longitude, name) {
   location = {latitude, longitude, name};
   place.textContent = name;
-  render('Готово. Избери въпрос.');
+  render('Готово. Select въпрос.');
 }
 function getCurrentPosition() {
   return new Promise((resolve, reject) => {
-    if (!navigator.geolocation) return reject(new Error('Браузърът не поддържа геолокация.'));
+    if (!navigator.geolocation) return reject(new Error('Your browser does not support geolocation.'));
     navigator.geolocation.getCurrentPosition(resolve, reject, {
       enableHighAccuracy: false, timeout: 12000, maximumAge: 300000
     });
@@ -53,14 +53,14 @@ function getCurrentPosition() {
 async function locate() {
   if (busy) return;
   setBusy(true);
-  render('Търся местоположението…', 'loading');
+  render('Finding your location…', 'loading');
   try {
     const pos = await getCurrentPosition();
-    setLocation(pos.coords.latitude, pos.coords.longitude, 'Текущото ми местоположение');
+    setLocation(pos.coords.latitude, pos.coords.longitude, 'My current location');
   } catch (error) {
     render(error.code === 1
-      ? 'Достъпът до местоположение е отказан. Въведи град по-долу.'
-      : 'Не успях да взема местоположението. Въведи град по-долу.', 'error');
+      ? 'Location access was denied. Enter a city below.'
+      : 'Could not determine your location. Enter a city below.', 'error');
   } finally { setBusy(false); }
 }
 async function chooseCity(event) {
@@ -69,17 +69,17 @@ async function chooseCity(event) {
   const name = new FormData(cityForm).get('city')?.trim();
   if (!name || name.length < 2) return;
   setBusy(true);
-  render('Търся града…', 'loading');
+  render('Finding the city…', 'loading');
   try {
     const url = new URL('https://geocoding-api.open-meteo.com/v1/search');
-    url.search = new URLSearchParams({name, count: '1', language: 'bg', format: 'json'}).toString();
+    url.search = new URLSearchParams({name, count: '1', language: 'en', format: 'json'}).toString();
     const response = await fetch(url);
-    if (!response.ok) throw new Error('Няма връзка с услугата за градове.');
+    if (!response.ok) throw new Error('The city search service is unavailable.');
     const data = await response.json();
     const city = data.results?.[0];
-    if (!city) throw new Error('Не намирам този град. Опитай с друго име.');
+    if (!city) throw new Error('City not found. Try another name.');
     setLocation(city.latitude, city.longitude, [city.name, city.country].filter(Boolean).join(', '));
-  } catch (error) { render(error.message || 'Възникна грешка.', 'error'); }
+  } catch (error) { render(error.message || 'Something went wrong.', 'error'); }
   finally { setBusy(false); }
 }
 async function getWeather() {
@@ -96,7 +96,7 @@ async function getWeather() {
     timezone: 'auto'
   }).toString();
   const response = await fetch(url);
-  if (!response.ok) throw new Error('Метеорологичната услуга е недостъпна.');
+  if (!response.ok) throw new Error('The weather service is unavailable.');
   const data = await response.json();
   weatherCache.set(key, {data, time: Date.now()});
   return data;
@@ -109,39 +109,39 @@ function rainNow(data) {
 }
 function rainUntil(data) {
   const raining = rainNow(data);
-  if (raining === null) return 'Няма достатъчно данни за текущите валежи.';
-  if (!raining) return 'Според текущите метеоданни в района не вали.';
+  if (raining === null) return 'There is not enough current rainfall data.';
+  if (!raining) return 'According to current weather data, it is not raining in this area.';
   const times = data.hourly?.time;
   const amounts = data.hourly?.precipitation;
-  if (!Array.isArray(times) || !Array.isArray(amounts)) return 'Няма достатъчно данни кога ще спре.';
+  if (!Array.isArray(times) || !Array.isArray(amounts)) return 'There is not enough forecast data to estimate when rain will stop.';
   // Open-Meteo hourly timestamps are local to the requested timezone; current.time has the same convention.
   const currentHour = data.current?.time?.slice(0, 13);
   const start = times.findIndex(t => t.slice(0, 13) > currentHour);
-  if (start < 0) return 'Няма достатъчно данни кога ще спре.';
+  if (start < 0) return 'There is not enough forecast data to estimate when rain will stop.';
   for (let i = start; i < amounts.length - 1; i++) {
     if (Number.isFinite(amounts[i]) && Number.isFinite(amounts[i + 1])
         && amounts[i] < STOP_THRESHOLD && amounts[i + 1] < STOP_THRESHOLD) {
       const hour = times[i].slice(11, 16);
-      return `Очаква се дъждът да спре около ${hour} ч. (приблизителна почасова прогноза).`;
+      return `Rain is expected to stop around ${hour} (approximate hourly forecast).`;
     }
   }
-  return 'Не се очертава ясно спиране на дъжда в близката прогноза.';
+  return 'The near-term forecast does not show a clear end to the rain.';
 }
 async function ask(kind) {
   if (busy) return;
-  if (!location) return render('Първо избери „Намери ме“ или въведи град.', 'error');
+  if (!location) return render('Първо избери „Find me“ или въведи град.', 'error');
   setBusy(true);
-  render('Проверявам прогнозата…', 'loading');
+  render('Checking the forecast…', 'loading');
   try {
     const data = await getWeather();
     const raining = rainNow(data);
     const message = kind === 'now'
-      ? raining === null ? 'Няма достатъчно актуални данни за валежите.'
-        : raining ? 'Според текущите метеоданни в района вали.'
-        : 'Според текущите метеоданни в района не вали.'
+      ? raining === null ? 'There is not enough current rainfall data.'
+        : raining ? 'According to current weather data, it is raining in this area.'
+        : 'According to current weather data, it is not raining in this area.'
       : rainUntil(data);
     render(message, 'success');
-  } catch (error) { render(error.message || 'Не успях да заредя прогнозата.', 'error'); }
+  } catch (error) { render(error.message || 'Could not load the forecast.', 'error'); }
   finally { setBusy(false); }
 }
 locateButton.addEventListener('click', locate);
