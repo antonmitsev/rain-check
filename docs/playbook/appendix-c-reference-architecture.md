@@ -62,11 +62,11 @@ The **pngjs** dependency creates basic demonstration PNG icons, including an opa
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#14263c">
   <meta name="description" content="A small offline-capable PWA demonstration.">
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="icon" href="./icons/icon-192.png" type="image/png">
+  <link rel="icon" sizes="32x32" href="./icons/favicon-32.png" type="image/png">
   <link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png">
   <meta name="apple-mobile-web-app-title" content="Sample Status">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -508,7 +508,10 @@ html, body, #app { width: 100%; max-width: 100%; min-width: 0; }
 body { margin: 0; }
 .shell { width: 100%; max-width: 580px; min-width: 0; margin-inline: auto;
   min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column;
-  padding: 24px 16px 32px; }
+  padding: max(24px, env(safe-area-inset-top))
+           max(16px, env(safe-area-inset-right))
+           max(32px, env(safe-area-inset-bottom))
+           max(16px, env(safe-area-inset-left)); }
 .shell > :not(#toast) { width: 100%; min-width: 0; max-width: 100%; }
 header { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 header > * { min-width: 0; overflow-wrap: anywhere; }
