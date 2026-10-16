@@ -10,14 +10,24 @@ No Node.js is required on the host.
    npm run build
    ```
 2. In **cPanel → Domains**, create a domain/subdomain such as `rain.example.com` and set its **Document Root** to e.g. `/home/USER/public_html/rain-check`. If DNS is hosted elsewhere, add an A/AAAA record pointing the name to the hosting IP. Allow DNS to propagate. Enable HTTPS via AutoSSL / SSL/TLS Status (availability depends on host).
-3. Open **File Manager**. Navigate to that exact Document Root. Upload **the contents of** `dist/` (not the folder itself): `index.html`, `assets/`, `manifest.webmanifest`, `sw.js`, `icons/`, `precache-manifest.json`, and `version.json`.
+3. Open **File Manager**. Navigate to that exact Document Root. Upload **the contents of** `dist/` (not the folder itself): `index.html`, `assets/`, `manifest.webmanifest`, `sw.js`, `icons/`, `precache-manifest.json`, `version.json`, and the hidden `.htaccess` file.
 4. Verify `https://rain.example.com/version.json` returns JSON with the expected version and UTC build timestamp. Then open `https://rain.example.com/`. Accept browser geolocation permission or type a city. Click both buttons.
 
 For an existing domain, you can instead upload the files into a subdirectory, e.g. `public_html/rain-check/`, and open `https://example.com/rain-check/`. Vite uses relative asset paths (`base: './'`) so this works without rewriting asset URLs.
 
 **PWA:** HTTPS is mandatory for service workers and installability (except localhost). Make sure `manifest.webmanifest`, `sw.js`, `precache-manifest.json`, the PNG icons, and every file in `assets/` are served without 404 errors. Run the full `npm run build` command (which includes PWA postbuild preparation). The service worker is registered with a relative URL and supports either a dedicated subdomain or a subdirectory. After deployment, reload online once to cache the app shell. For updates, replace the entire build, then reload while online. See [PWA guide](pwa.md).
 
-**Apache:** no `.htaccess` needed. This is a one-page app with no client-side routes. PHP and databases are unnecessary.
+**Apache HTTPS redirect:** `public/.htaccess` is copied into `dist/.htaccess` by the Vite build and must be uploaded to the site's Document Root along with the other build files. It uses Apache `mod_rewrite` to redirect HTTP requests to the same URL over HTTPS with a permanent `301` response, preserving the hostname, path, and query string. If the site is deployed in `/rain-check/`, the redirect preserves that subdirectory. No SPA routing rewrite is needed because the app has no client-side routes. PHP and databases are unnecessary.
+
+cPanel File Manager may hide dotfiles. Enable **Settings → Show Hidden Files (dotfiles)** to confirm `.htaccess` is present; some file-upload or archive workflows may skip it. Apache must allow `.htaccess` overrides and enable `mod_rewrite`. The domain needs a valid TLS certificate first (e.g. AutoSSL). If cPanel's **Force HTTPS Redirect** is already enabled, consider using only one HTTPS redirect mechanism to simplify troubleshooting. Behind a reverse proxy or CDN, use end-to-end HTTPS (such as Cloudflare Full/Strict) rather than HTTP-only origin connections that can cause redirect loops.
+
+**Verify with:**
+
+```sh
+curl -I 'http://rain.example.com/rain-check/?from=test'
+```
+
+Expected: `HTTP/1.1 301 Moved Permanently` (or `HTTP/2 301`) and a `Location: https://rain.example.com/rain-check/?from=test` header. A direct HTTPS request must **not** redirect again. During development of the rule, consider temporarily using `R=302` instead of `R=301` because browsers aggressively cache permanent redirects.
 
 ## Verify the deployed build
 
@@ -52,6 +62,8 @@ Important limitations:
 - **Geolocation not working:** use HTTPS (or localhost in development) and grant permission; or enter a city.
 - **404 on JS/CSS:** verify contents of `dist/` are placed directly in Document Root, and do not omit `assets/`.
 - **Wrong subdomain:** check cPanel Document Root and DNS.
+- **HTTP is not redirected:** confirm `.htaccess` is uploaded and visible in Document Root, Apache `mod_rewrite` is enabled, and `.htaccess` overrides are allowed.
+- **Redirect loop:** verify the origin server sees HTTPS correctly; check existing cPanel redirects and reverse-proxy/CDN TLS configuration.
 - **API failed:** verify the host/client network can reach `api.open-meteo.com` and `geocoding-api.open-meteo.com` over HTTPS. Requests run from the visitor's browser.
 - **Update:** rebuild locally and replace the old `index.html` and `assets/` with the new build.
 
