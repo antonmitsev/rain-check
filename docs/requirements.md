@@ -24,7 +24,7 @@ A single-page application showing the selected location, two action buttons, and
 | F06 | Weather cache | Cache responses by approximate coordinates for up to 10 minutes. |
 | F07 | Error handling | Explain network, geolocation, and unavailable-data failures. |
 | F08 | PWA installation | Provide a valid web manifest, 192px and 512px icons, standalone display mode, and a registered service worker. |
-| F09 | Offline app shell | Previously loaded UI opens offline; live weather and geocoding require network access and should show an error if unavailable. |
+| F09 | Offline app shell | Previously loaded UI opens offline; live weather and geocoding require network access and should show an error if unavailable. |\n| F10 | Build version endpoint | Each production build emits a public `version.json` with package version, UTC build timestamp and optional Git commit. |
 
 ## 4. Non-functional requirements
 
