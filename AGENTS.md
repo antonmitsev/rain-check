@@ -14,4 +14,5 @@ The playbook is **generic guidance**, not an instruction to rebuild RainCheck. F
 - For PWA updates, protect cached offline startup and preserve browser `localStorage` data.
 - Run the complete `npm run build` command for deployment packaging; plain `vite build` does not generate the complete precache manifest.
 - When changing a feature, update its corresponding English documentation in the same work.
+- Write commit bodies as clear, concise bullet points covering the completed work and verification.
 - **Do not run automated or visual tests unless the user explicitly asks for testing.** Clearly state what was changed and what remains unverified.

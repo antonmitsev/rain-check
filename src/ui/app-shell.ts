@@ -1,4 +1,6 @@
 export interface AppElements {
+  routeViewport: HTMLDivElement;
+  homeScreen: HTMLElement;
   toast: HTMLDivElement;
   versionBadge: HTMLSpanElement;
   connectionBanner: HTMLDivElement;
@@ -25,11 +27,13 @@ export interface AppElements {
 
 const appTemplate = `
 <section class="shell">
+<header>
+  <a class="brand" href="#/" aria-label="RainCheck home"><span class="brand-icon" aria-hidden="true">☁</span> RainCheck</a>
+  <span class="version" id="app-version" title="Application build">v0.1</span>
+</header>
+<div class="route-viewport" id="route-viewport">
+<div class="route-page" id="home-screen" data-route-page="home">
   <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true" hidden></div>
-  <header>
-    <div class="brand"><span class="brand-icon" aria-hidden="true">☁</span> RainCheck</div>
-    <span class="version" id="app-version" title="Application build">v0.1</span>
-  </header>
   <div class="connection-banner" id="connection-banner" role="status" aria-live="polite" hidden>
     <span class="connection-dot" aria-hidden="true"></span>
     <strong id="connection-label">ONLINE</strong>
@@ -40,7 +44,7 @@ const appTemplate = `
       <span class="eyebrow-lead">RAIN AT A GLANCE</span>
       <span class="eyebrow-details"><span class="eyebrow-separator" aria-hidden="true">|</span> ONE CHECK · NO SIGN-UP</span>
     </div>
-    <h1>Do I need an <em>umbrella?</em></h1>
+    <h1 tabindex="-1">Do I need an <em>umbrella?</em></h1>
   </div>
   <div class="weather-workspace">
     <section class="location-panel" aria-label="Location">
@@ -91,10 +95,17 @@ const appTemplate = `
     <div class="history-heading"><h2>Recent checks</h2></div>
     <div id="history-list" class="history-list"></div>
   </section>
-  <footer>
-    <div>Weather data: <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a> · Location names: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap contributors</a> · Local conditions may differ.</div>
-    <div class="credits">Created by <a href="https://tonymitsev.com/" target="_blank" rel="noopener noreferrer">tonymitsev.com</a> · AI-assisted development with <a href="https://openai.com/" target="_blank" rel="noopener noreferrer">OpenAI</a></div>
-  </footer>
+</div>
+</div>
+<footer>
+  <nav class="footer-nav" aria-label="Information">
+    <a href="#/about">About</a>
+    <a href="#/terms">T&amp;C</a>
+    <a href="#/cookies">Cookies</a>
+  </nav>
+  <div>Weather data: <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a> · Location names: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap contributors</a> · Local conditions may differ.</div>
+  <div class="credits">Created by <a href="https://tonymitsev.com/" target="_blank" rel="noopener noreferrer">tonymitsev.com</a> · AI-assisted development with <a href="https://openai.com/" target="_blank" rel="noopener noreferrer">OpenAI</a></div>
+</footer>
 </section>`;
 
 function required<T extends Element>(root: ParentNode, selector: string): T {
@@ -107,6 +118,8 @@ export function mountAppShell(root: HTMLElement): AppElements {
   root.innerHTML = appTemplate;
   const cityForm = required<HTMLFormElement>(root, '#city-form');
   return {
+    routeViewport: required<HTMLDivElement>(root, '#route-viewport'),
+    homeScreen: required<HTMLElement>(root, '#home-screen'),
     toast: required<HTMLDivElement>(root, '#toast'),
     versionBadge: required<HTMLSpanElement>(root, '#app-version'),
     connectionBanner: required<HTMLDivElement>(root, '#connection-banner'),

@@ -12,9 +12,14 @@ RainCheck is an installable Progressive Web App (PWA) built with Vite, vanilla T
 - `scripts/prepare-pwa.mjs`: postbuild script that lists hashed `dist/assets/` files, generates `dist/precache-manifest.json`, and embeds the build ID in `dist/sw.js`.
 - `index.html`: manifest, favicon, Apple touch icon, and mobile metadata.
 - `src/main.ts`: mounts and starts the browser application.
+- `src/ui/router.ts`: switches the cached Home and informational screens through offline-safe hash routes.
 - `src/pwa/register-service-worker.ts`: registers the service worker after page load and owns the update lifecycle.
 
 Files under `public/` are copied to `dist/` by Vite. `npm run build` generates icons, runs the strict TypeScript check, compiles TypeScript/SCSS with Vite, and prepares the PWA precache. Running `vite build` alone does not finish PWA packaging. The development server does not register the service worker.
+
+## Informational routes
+
+About, T&C, and Cookies & Storage use `#/about`, `#/terms`, and `#/cookies`. Hash routing keeps every navigation on the precached `index.html`, so Apache fallback rules and extra HTML files are unnecessary. The Home weather screen remains mounted while an informational screen is open; returning does not discard its browser state or trigger a page reload. Route transitions respect the system reduced-motion preference.
 
 ## Installation
 

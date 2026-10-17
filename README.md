@@ -14,6 +14,7 @@ A minimal weather app that checks current rainfall and its next expected change 
 - Only the essential status and approximate time are prominent. A single compact line below reads **APPROXIMATE · Fetched on ...**, prefixed with **CACHED** for stored forecasts. The verbose forecast sentence and redundant observation-time line are no longer shown.
 - Open-Meteo API, 10-minute in-memory cache, no user accounts, backend, database, or AI service.
 - Responsive interface; deployable as a static website on Apache/cPanel.
+- Lightweight hash routing adds concise About, T&C, and Cookies & Storage screens. Footer links move forward with a leftward transition; Home returns right without discarding the weather screen state.
 - Installable PWA with an offline app shell and **saved weather snapshots**, available without a network.
 - A successful weather fetch is saved on-device along with the selected location, its observation timestamp, and the time it was saved. Up to eight locations are retained; the saved data is always labeled as historical, never live.
 - No persistent status banner while online: the connectivity warning appears only for **OFFLINE** or **SERVER UNREACHABLE**. The amber offline theme is retained for those states. The origin check is a network-only fetch of `version.json`; a server outage does not automatically disable external weather services.

@@ -36,19 +36,6 @@
   }
 }
 
-@media (max-width: 420px) {
-  .connection-banner {
-    flex-wrap: wrap;
-
-    #connection-description {
-      width: 100%;
-      margin-left: 0;
-      padding-left: 18px;
-      text-align: left;
-    }
-  }
-}
-
 @media (max-width: 380px) {
   .shell {
     padding-top: max(24px, env(safe-area-inset-top));
