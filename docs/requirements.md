@@ -28,7 +28,7 @@ A single-page application showing the selected location, one weather check butto
 | F10 | Build version endpoint | Each production build emits a public `version.json` with package version, UTC build timestamp and optional Git commit. |
 | F11 | Visible build identity | The UI header uses metadata bundled into the running JavaScript at build time, showing package version and the first seven commit characters, also offline. The online `version.json` independently reports the deployed build. |
 | F12 | Project credits | The footer links to tonymitsev.com and OpenAI as a transparent AI-assisted development acknowledgment, without suggesting official endorsement. |
-| F13 | Connectivity indication | Hide the connectivity banner when online, preserving vertical space. Show the warning banner and warm theme only while offline or when the origin server is unreachable. Keep weather actions responsive while offline. |
+| F13 | Connectivity indication | Hide the connectivity banner when online, preserving vertical space. Show its status and description on one compact line, truncating the description rather than wrapping on narrow screens. Show the warning banner and warm theme only while offline or when the origin server is unreachable. Keep weather actions responsive while offline. |
 | F14 | Persistent offline forecasts | Save the last selected location and up to eight time-stamped weather snapshots in localStorage. Persist the rain-stop forecast and the next expected rain onset for dry conditions. Offline answers include historical timestamps and use an explicit date for future rain estimates, without spinners or API requests. |
 | F15 | Compact hero heading | Render "Do I need an umbrella?" on one line, with compact typography and subtle positive letter spacing. Place the grouped tagline `RAIN AT A GLANCE | ONE CHECK · NO SIGN-UP` above it. The two text groups must not break internally; if necessary, wrap only between groups, so `NO SIGN-UP` is never orphaned on iPhone-sized screens. Do not add a separate descriptive paragraph. |
 | F16 | Enforce HTTPS on Apache | Include `public/.htaccess` in the production build to redirect HTTP requests to HTTPS with HTTP 301, preserving the host, path, and query string. Require an available SSL/TLS certificate. |
@@ -40,6 +40,7 @@ A single-page application showing the selected location, one weather check butto
 | F22 | Automatic PWA refresh | Each production build produces a distinct precache identity. Apache disables HTTP caching for HTML and PWA metadata; the app checks for new service workers on load and return to an active online state, then reloads controlled pages when the new complete worker activates. Offline weather history remains intact. |
 | F23 | Responsive landscape | Preserve the centered 580px-wide portrait/single-column layout. In landscape at widths 740px and above, use a two-column workspace (location and city search left; primary action and forecast right) with a centered 920px max-width shell, safe-area padding, and responsive recent history. Below the threshold, retain single column without horizontal scrolling. |
 | F24 | iOS Home Screen icon | Build an opaque 180×180 `apple-touch-icon.png` from the shared vector source; link it in HTML, include it in the production precache and `dist/icons/`, and document removal/re-addition of an old letter-only iOS shortcut without clearing local data. |
+| F25 | Informational routes | Provide concise About, T&C, and Cookies & Storage screens through clear footer links. Opening an informational screen moves only the route content left; the shared RainCheck brand acts as Home and returns it right without reloading or losing the current weather-screen state. Keep the shared header, build version, footer, and bottom navigation stationary. Use hash routes so direct links and offline navigation need no server rewrite, and suppress route motion when reduced motion is requested. |
 
 ## 4. Non-functional requirements
 
@@ -88,6 +89,7 @@ A single-page application showing the selected location, one weather check butto
 - With no saved weather, offline actions show a clear empty-state message.
 - The hero combines the two eyebrow phrases using a pipe, has no paragraph below the heading, and uses positive letter spacing.
 - Card internals are compact, while margins between major sections allow visual breathing room. The toast floats above content and footer credits stay at the bottom of short pages.
+- About, T&C, and Cookies footer links open their matching concise screens with a leftward transition. The shared RainCheck brand is a clear Home link that returns right, browser history works, and reduced-motion preferences remove the animation.
 
 ## 7. Out of scope for v0.1
 

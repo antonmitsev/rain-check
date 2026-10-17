@@ -3,6 +3,7 @@ import { RainCheckApp } from './app/rain-check-app';
 import { registerServiceWorker } from './pwa/register-service-worker';
 import { mountAppShell } from './ui/app-shell';
 import { showBuildVersion } from './ui/build-version';
+import { AppRouter } from './ui/router';
 import { createToastView } from './ui/toast';
 
 const root = document.querySelector<HTMLElement>('#app');
@@ -12,5 +13,11 @@ const elements = mountAppShell(root);
 showBuildVersion(elements.versionBadge);
 
 const app = new RainCheckApp(elements, createToastView(elements.toast));
-app.start();
+let appStarted = false;
+const router = new AppRouter(elements.routeViewport, elements.homeScreen, () => {
+  if (appStarted) return;
+  appStarted = true;
+  app.start();
+});
+router.start();
 registerServiceWorker();

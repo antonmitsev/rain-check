@@ -1,5 +1,6 @@
 .connection-banner {
   display: flex;
+  flex-wrap: nowrap;
   align-items: center;
   gap: 9px;
   margin-top: 18px;
@@ -10,20 +11,25 @@
   background: #173647;
   font-size: 12px;
   line-height: 1.4;
+  white-space: nowrap;
 
   &[hidden] {
     display: none;
   }
 
   strong {
+    flex: 0 0 auto;
     font: 700 11px 'DM Sans', system-ui, sans-serif;
     letter-spacing: 1.1px;
   }
 
   #connection-description {
+    min-width: 0;
     margin-left: auto;
+    overflow: hidden;
     color: #c0d5e0;
     text-align: right;
+    text-overflow: ellipsis;
   }
 }
 

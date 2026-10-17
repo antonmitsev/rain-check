@@ -25,11 +25,15 @@ The browser code uses strict TypeScript without a UI framework. `src/main.ts` on
 | Domain | `src/domain/weather.ts` | Pure rainfall and forecast interpretation. |
 | Services | `src/services/` | Open-Meteo weather/geocoding requests and browser geolocation. |
 | Storage | `src/storage/weather-store.ts` | Validation, bounded snapshots, last location, and explicit-check history. |
-| UI | `src/ui/` | App shell, toast, summary, history, suggestions, connectivity, and build badge rendering. |
+| UI | `src/ui/` | App shell, hash router, concise informational pages, toast, summary, history, suggestions, connectivity, and build badge rendering. |
 | PWA | `src/pwa/register-service-worker.ts` | Service-worker registration, update checks, and safe refresh behavior. |
 | Styles | `src/styles/` | SCSS partials grouped by layout, location, weather, history, feedback, and responsive behavior. |
 
 Shared browser/domain contracts live in `src/types.ts`. Vite transpiles TypeScript and Sass for the browser; `npm run typecheck` performs the strict static check, while the complete `npm run build` also generates icons and the PWA precache package.
+
+## Informational routing
+
+`src/ui/router.ts` owns the dependency-free routes `#/about`, `#/terms`, and `#/cookies`. It keeps the Home DOM mounted so location, forecast, and history state survive navigation. Only route content slides: the shared header, footer, and informational navigation remain stationary. The RainCheck brand in the shared header is the Home link, while the build version remains visible. Forward navigation moves left; Home and browser Back return right. `src/ui/static-pages.ts` owns only the concise page copy and markup. Direct hash links require no Apache fallback, remain compatible with the cached single entry point, update the document title, move focus to the new heading, and disable route animation when reduced motion is requested. The weather application starts only when Home is first shown, avoiding a geolocation prompt on a directly opened informational route.
 
 ## API requests
 
