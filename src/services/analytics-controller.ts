@@ -6,7 +6,7 @@ const measurementId = 'G-21R1C34RPH';
 
 declare global {
   interface Window {
-    dataLayer?: unknown[][];
+    dataLayer?: ArrayLike<unknown>[];
     gtag?: (...args: unknown[]) => void;
   }
 }
@@ -148,7 +148,7 @@ export class AnalyticsController {
     if (!import.meta.env.PROD || this.loaded) return;
 
     window.dataLayer = window.dataLayer ?? [];
-    window.gtag = (...args: unknown[]): void => { window.dataLayer?.push(args); };
+    window.gtag = function (): void { window.dataLayer?.push(arguments); };
     window.gtag('js', new Date());
     window.gtag('config', measurementId, { send_page_view: false });
 
