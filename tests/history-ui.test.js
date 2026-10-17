@@ -1,13 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { runInNewContext } from 'node:vm';
-import { recordWeatherCheck, getWeatherHistory, rememberLocation, removeWeatherHistoryItem } from '../src/offline-cache.js';
-import { rainNow, rainStarts, describeRainNow, rainUntil } from '../src/weather.js';
-
-const appSource = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8')
-  .replace(/^import .*;$/gm, '')
-  .replaceAll('import.meta.env.PROD', 'false');
+import { renderHistory } from '../src/ui/history.ts';
+import { recordWeatherCheck, getWeatherHistory } from '../src/storage/weather-store.ts';
 
 function storage() {
   const items = new Map();
@@ -19,16 +13,15 @@ function element() {
   return {
     textContent: '', innerHTML: '', className: '', value: '',
     hidden: false, disabled: false, children: [], listeners: {},
-    setAttribute() {},
+    setAttribute(name, value) { this[name] = value; },
     append(...nodes) { this.children.push(...nodes); },
     replaceChildren() { this.children = []; },
     addEventListener(name, handler) { this.listeners[name] = handler; },
-    querySelector() { return element(); },
-    querySelectorAll() { return []; }
+    classList: { toggle() {} }
   };
 }
 
-function setupApp() {
+function setupHistory() {
   const store = storage();
   const now = Date.now() - 30_000;
   const sofia = {latitude:42.6977,longitude:23.3219,name:'Sofia'};
@@ -38,62 +31,34 @@ function setupApp() {
     stopForecast: 'Rain was expected to stop at 19:00.',
     nextRainForecast: 'Rain was forecast to start at 20:00.'
   });
-  rememberLocation(sofia, store);
   recordWeatherCheck(sofia, snapshot(false), store, now);
   recordWeatherCheck(plovdiv, snapshot(true), store, now + 1);
 
-  const elements = new Map();
-  const select = selector => {
-    if (!elements.has(selector)) elements.set(selector, element());
-    return elements.get(selector);
-  };
-  const classes = new Set();
-  const document = {
-    querySelector: select,
-    createElement: element,
-    addEventListener() {},
-    body: { classList: {
-      contains: name => classes.has(name),
-      toggle(name, enabled) { if (enabled) classes.add(name); else classes.delete(name); }
-    } }
-  };
-  const navigator = {onLine:false};
+  globalThis.document = { createElement: element };
+  const panel = element();
+  const list = element();
   let requests = 0;
-  const fetch = () => { requests++; throw Error('History initiated a request'); };
-  const bind = {
-    rememberLocation: loc => rememberLocation(loc, store),
-    getLastLocation: () => sofia,
-    saveWeatherSnapshot: () => {},
-    getWeatherSnapshot: () => null,
-    getWeatherHistory: () => getWeatherHistory(store),
-    recordWeatherCheck: (loc, snap) => recordWeatherCheck(loc, snap, store),
-    removeWeatherHistoryItem: loc => removeWeatherHistoryItem(loc, store)
-  };
-  const sandbox = {
-    document, navigator, window:{addEventListener(){}},
-    // The UI toast auto-dismisses in browsers; timers are inert in this non-visual unit fixture.
-    setTimeout: () => 0, clearTimeout: () => {},
-    fetch, __BUILD_INFO__:{version:'0.1.0',commit:null,builtAt:new Date().toISOString()},
-    clearTimeout, setTimeout,
-    ...bind, rainNow, rainStarts, describeRainNow, rainUntil
-  };
-  runInNewContext(appSource, sandbox);
-  return {select, navigator, get requests(){return requests;}, store};
+  globalThis.fetch = () => { requests++; throw Error('History initiated a request'); };
+  let opened = null;
+  renderHistory(panel, list, getWeatherHistory(store), {
+    open(entry) { opened = entry; },
+    remove() {}
+  });
+  return { panel, list, get opened() { return opened; }, get requests() { return requests; }, store };
 }
 
 test('history click only shows stored cards, never requests weather online or offline', () => {
-  const app = setupApp();
-  const history = app.select('#history-list');
-  assert.equal(history.children.length, 2);
-  history.children[0].children[0].listeners.click();
-  assert.equal(app.select('#place').textContent, 'Plovdiv');
-  assert.equal(app.select('#summary-now').textContent, 'ВАЛИ');
-  assert.equal(app.requests, 0);
+  const history = setupHistory();
+  assert.equal(history.panel.hidden, false);
+  assert.equal(history.list.children.length, 2);
+  history.list.children[0].children[0].listeners.click();
+  assert.equal(history.opened.location.name, 'Plovdiv');
+  assert.equal(history.opened.snapshot.raining, true);
+  assert.equal(history.requests, 0);
 
-  app.navigator.onLine = true;
-  history.children[1].children[0].listeners.click();
-  assert.equal(app.select('#place').textContent, 'Sofia');
-  assert.equal(app.select('#summary-now').textContent, 'СУХО');
-  assert.equal(app.requests, 0);
-  assert.deepEqual(getWeatherHistory(app.store).map(e => e.location.name), ['Plovdiv','Sofia']);
+  history.list.children[1].children[0].listeners.click();
+  assert.equal(history.opened.location.name, 'Sofia');
+  assert.equal(history.opened.snapshot.raining, false);
+  assert.equal(history.requests, 0);
+  assert.deepEqual(getWeatherHistory(history.store).map(entry => entry.location.name), ['Plovdiv', 'Sofia']);
 });

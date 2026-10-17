@@ -1,0 +1,133 @@
+export interface AppElements {
+  toast: HTMLDivElement;
+  versionBadge: HTMLSpanElement;
+  connectionBanner: HTMLDivElement;
+  connectionLabel: HTMLElement;
+  connectionDescription: HTMLSpanElement;
+  themeMeta: HTMLMetaElement | null;
+  place: HTMLElement;
+  locationStatus: HTMLElement;
+  cityInput: HTMLInputElement;
+  suggestions: HTMLDivElement;
+  locateButton: HTMLButtonElement;
+  cityForm: HTMLFormElement;
+  citySubmitButton: HTMLButtonElement;
+  checkButton: HTMLButtonElement;
+  summaryCard: HTMLElement;
+  summaryNow: HTMLElement;
+  summaryNext: HTMLElement;
+  summaryTime: HTMLElement;
+  summaryDay: HTMLElement;
+  summaryMeta: HTMLElement;
+  historyPanel: HTMLElement;
+  historyList: HTMLDivElement;
+}
+
+const appTemplate = `
+<section class="shell">
+  <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true" hidden></div>
+  <header>
+    <div class="brand"><span class="brand-icon" aria-hidden="true">☁</span> RainCheck</div>
+    <span class="version" id="app-version" title="Application build">v0.1</span>
+  </header>
+  <div class="connection-banner" id="connection-banner" role="status" aria-live="polite" hidden>
+    <span class="connection-dot" aria-hidden="true"></span>
+    <strong id="connection-label">ONLINE</strong>
+    <span id="connection-description">Live weather available</span>
+  </div>
+  <div class="hero">
+    <div class="eyebrow">
+      <span class="eyebrow-lead">RAIN AT A GLANCE</span>
+      <span class="eyebrow-details"><span class="eyebrow-separator" aria-hidden="true">|</span> ONE CHECK · NO SIGN-UP</span>
+    </div>
+    <h1>Do I need an <em>umbrella?</em></h1>
+  </div>
+  <div class="weather-workspace">
+    <section class="location-panel" aria-label="Location">
+      <div class="location-line">
+        <span class="pin" aria-hidden="true">⌖</span>
+        <div>
+          <small>Location</small>
+          <strong id="place">Not selected yet</strong>
+          <small id="location-status" class="location-status" aria-live="polite">Choose a city or find your location</small>
+        </div>
+        <button id="locate" class="link-btn" type="button">Find me</button>
+      </div>
+      <form id="city-form">
+        <label for="city">Or enter a city</label>
+        <div class="city-input">
+          <input id="city" name="city" placeholder="e.g. London" autocomplete="address-level2" required minlength="2">
+          <button type="submit">Search</button>
+        </div>
+        <div id="suggestions" class="suggestions" role="listbox" aria-label="City suggestions" hidden></div>
+      </form>
+    </section>
+    <div class="weather-workspace__result">
+      <div class="actions">
+        <button id="check" class="action" type="button">
+          <span class="action-symbol" aria-hidden="true">☔</span>
+          <span>Check weather</span>
+        </button>
+      </div>
+      <section id="weather-results" class="weather-results" aria-live="polite">
+        <article class="weather-summary neutral" id="summary-card" aria-label="Current rain and the next change">
+          <div class="summary-main">
+            <div class="summary-phase summary-current">
+              <strong class="summary-headline" id="summary-now">—</strong>
+            </div>
+            <span class="summary-arrow" aria-hidden="true">→</span>
+            <div class="summary-phase summary-future">
+              <strong class="summary-headline summary-transition" id="summary-next">—</strong>
+              <strong class="summary-time" id="summary-time"></strong>
+              <span class="summary-day" id="summary-day"></span>
+            </div>
+          </div>
+          <p class="summary-meta" id="summary-meta">Check weather to see the forecast.</p>
+        </article>
+      </section>
+    </div>
+  </div>
+  <section class="history" id="recent-checks" aria-label="Recent weather checks" hidden>
+    <div class="history-heading"><h2>Recent checks</h2></div>
+    <div id="history-list" class="history-list"></div>
+  </section>
+  <footer>
+    <div>Weather data: <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a> · Location names: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap contributors</a> · Local conditions may differ.</div>
+    <div class="credits">Created by <a href="https://tonymitsev.com/" target="_blank" rel="noopener noreferrer">tonymitsev.com</a> · AI-assisted development with <a href="https://openai.com/" target="_blank" rel="noopener noreferrer">OpenAI</a></div>
+  </footer>
+</section>`;
+
+function required<T extends Element>(root: ParentNode, selector: string): T {
+  const element = root.querySelector<T>(selector);
+  if (!element) throw new Error(`Missing required app element: ${selector}`);
+  return element;
+}
+
+export function mountAppShell(root: HTMLElement): AppElements {
+  root.innerHTML = appTemplate;
+  const cityForm = required<HTMLFormElement>(root, '#city-form');
+  return {
+    toast: required<HTMLDivElement>(root, '#toast'),
+    versionBadge: required<HTMLSpanElement>(root, '#app-version'),
+    connectionBanner: required<HTMLDivElement>(root, '#connection-banner'),
+    connectionLabel: required<HTMLElement>(root, '#connection-label'),
+    connectionDescription: required<HTMLSpanElement>(root, '#connection-description'),
+    themeMeta: document.querySelector<HTMLMetaElement>('meta[name="theme-color"]'),
+    place: required<HTMLElement>(root, '#place'),
+    locationStatus: required<HTMLElement>(root, '#location-status'),
+    cityInput: required<HTMLInputElement>(root, '#city'),
+    suggestions: required<HTMLDivElement>(root, '#suggestions'),
+    locateButton: required<HTMLButtonElement>(root, '#locate'),
+    cityForm,
+    citySubmitButton: required<HTMLButtonElement>(cityForm, 'button[type="submit"]'),
+    checkButton: required<HTMLButtonElement>(root, '#check'),
+    summaryCard: required<HTMLElement>(root, '#summary-card'),
+    summaryNow: required<HTMLElement>(root, '#summary-now'),
+    summaryNext: required<HTMLElement>(root, '#summary-next'),
+    summaryTime: required<HTMLElement>(root, '#summary-time'),
+    summaryDay: required<HTMLElement>(root, '#summary-day'),
+    summaryMeta: required<HTMLElement>(root, '#summary-meta'),
+    historyPanel: required<HTMLElement>(root, '#recent-checks'),
+    historyList: required<HTMLDivElement>(root, '#history-list')
+  };
+}

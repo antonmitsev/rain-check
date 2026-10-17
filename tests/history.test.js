@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {
   rememberLocation, saveWeatherSnapshot, getWeatherSnapshot,
   recordWeatherCheck, getWeatherHistory
-} from '../src/offline-cache.js';
+} from '../src/storage/weather-store.ts';
 
 function storage() {
   const data = new Map();

@@ -28,6 +28,12 @@ npm install
 npm run dev
 ```
 
+Run the standalone TypeScript check without producing build output:
+
+```sh
+npm run typecheck
+```
+
 Build for production (including the offline asset manifest and build-specific service worker):
 
 ```sh
@@ -92,7 +98,7 @@ The version is read from `package.json`. `builtAt` is the UTC time of the build,
 
 ## Technology
 
-Vite + vanilla JavaScript + CSS. There is no React runtime; this keeps the app small and dependency-light. Weather and geocoding services are provided by [Open-Meteo](https://open-meteo.com/), subject to its terms of use.
+Vite + strict vanilla TypeScript + modular SCSS. There is no React runtime; this keeps the app small and dependency-light. TypeScript separates the domain rules, browser storage, provider clients, UI renderers, application coordination, and service-worker registration. SCSS is split by visual responsibility and compiled to content-hashed CSS by the complete Vite build. Weather and geocoding services are provided by [Open-Meteo](https://open-meteo.com/), subject to its terms of use.
 
 ## Documentation
 
