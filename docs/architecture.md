@@ -89,7 +89,7 @@ This is a simple product heuristic, not a validated meteorological nowcasting te
 
 - In-memory weather cache: 10 minutes, keyed by rounded coordinates.
 - No server-side storage of the user's location.
-- `src/services/analytics-controller.ts` owns the optional GA4 consent flow and SPA page views. It stores the shared accept/reject choice in the one-year `tm_analytics_consent` cookie, plus a localStorage compatibility copy, and does not load the Google tag until acceptance. Page views follow the hash router; development builds do not send analytics. Since page views are sent manually, disable “Page changes based on browser history events” in the GA4 web stream's Enhanced Measurement settings to avoid duplicate SPA page views.
+- `src/services/analytics-controller.ts` owns the optional GA4 consent flow and SPA page views. It stores the shared accept/reject choice in the one-year `tm_analytics_consent` cookie, plus a localStorage compatibility copy, and does not load the Google tag until acceptance. Page views follow the hash router; development builds do not send analytics. Since page views are sent manually, disable “Page changes based on browser history events” in the GA4 web stream's Enhanced Measurement settings to avoid duplicate SPA page views; see [GA4 tracking setup](ga4-tracking.md).
 - The GA4 tag uses the same measurement ID as tonymitsev.com. The shared preference cookie applies across the parent domain and subdomains. A rejection blocks the tag on both sites and clears the `_ga` cookies for this property.
 - Browser geolocation requires HTTPS (except localhost).
 - Open-Meteo offers free non-commercial access under its applicable terms.
