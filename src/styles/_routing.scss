@@ -29,6 +29,10 @@
   }
 }
 
+.route-page h1[tabindex='-1']:focus {
+  outline: none;
+}
+
 .route-page--exit-left {
   z-index: 1;
   animation: route-exit-left 240ms ease both;
