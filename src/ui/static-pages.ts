@@ -21,15 +21,22 @@ const pages: Record<StaticRoute, StaticPageContent> = {
     body: `
       <p>RainCheck is provided for general information, without guarantees of accuracy or availability.</p>
       <p>Do not rely on it for safety-critical decisions. Weather data comes from third-party providers and remains subject to their terms.</p>
+      <p>Optional Google Analytics is used only if you accept analytics cookies. See <a href="#/cookies">Cookies &amp; Storage</a> for details and controls.</p>
       <p>By using the app, you accept these limitations.</p>`
   },
   cookies: {
     title: 'Cookies & Storage',
     eyebrow: 'COOKIES',
     body: `
-      <p>RainCheck does not use advertising or analytics cookies.</p>
-      <p>It uses browser local storage for your selected location, saved forecasts and recent checks, plus Cache Storage for offline startup.</p>
-      <p>You can remove this data at any time by clearing RainCheck site data in your browser.</p>`
+      <p>RainCheck does not configure advertising tags or ad-personalisation cookies. With your permission, this app loads Google Analytics 4 (measurement ID G-21R1C34RPH) to measure visits and app usage, sending page-view data to Google. The Google tag is not loaded unless you choose “Accept analytics”; choosing “Reject analytics” blocks further RainCheck analytics events.</p>
+      <p>Google Analytics may set first-party cookies including <code>_ga</code> and <code>_ga_21R1C34RPH</code> to distinguish users and maintain session state. Their default expiry is two years, though browser privacy settings may shorten it. See <a href="https://support.google.com/analytics/answer/11397207" target="_blank" rel="noopener noreferrer">Google’s cookie information</a>.</p>
+      <p>The analytics choice is shared with tonymitsev.com using a one-year preference cookie. If the shared choice is “rejected”, the Google tag is not loaded on either site. Rejecting also clears the Google Analytics cookies for this domain.</p>
+      <p>RainCheck also uses local storage for your selected location, saved forecasts, recent checks and your analytics choice, plus Cache Storage for offline startup. This app-specific data stays in your browser and can be removed by clearing site data. To change your analytics choice, use the controls below.</p>
+      <div class="analytics-preferences" aria-label="Analytics cookie preferences">
+        <button type="button" data-analytics-consent="accepted">Accept analytics</button>
+        <button type="button" data-analytics-consent="rejected">Reject analytics</button>
+        <span class="analytics-consent-status" role="status"></span>
+      </div>`
   }
 };
 

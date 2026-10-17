@@ -75,6 +75,8 @@ If no snapshot exists, the app immediately explains that an online visit is requ
 
 The history is stored alongside snapshots in `localStorage` (`raincheck:offline:v1`). It holds at most three checked locations; opening a history entry never updates its time, reorders the list, calls geolocation, or requests a forecast. Checks use the existing in-memory cache when available, while silent location prefetches are not added to history. Offline Check weather clicks can update the recent-check order from saved data.
 
+Optional Google Analytics 4 uses the same property as tonymitsev.com and loads only after the visitor accepts analytics in the consent prompt. The one-year `tm_analytics_consent` cookie shares the accept/reject choice across tonymitsev.com and RainCheck. A rejection blocks the tag on both sites and clears the GA cookies; the app also keeps a localStorage copy for compatibility. See the app's Cookies & Storage page for cookie names, purposes and controls.
+
 Run `npm test` for the offline-cache, history, and weather unit tests.
 
 ## Testing PWA offline

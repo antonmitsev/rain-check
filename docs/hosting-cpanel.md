@@ -87,4 +87,4 @@ Important limitations:
 
 ## Privacy and cost
 
-Location is requested only with permission; coordinates are sent directly from the browser to Open-Meteo for forecasts. The app has no backend or tracking. Check Open-Meteo licensing and limits before commercial use. ChatGPT Free is not a programmable API and is not used in this MVP.
+Location is requested only with permission; coordinates are sent directly from the browser to Open-Meteo for forecasts. The app has no backend or user accounts. Optional Google Analytics 4 loads only after explicit analytics consent; the one-year choice cookie is shared with tonymitsev.com, and rejection blocks both sites' tags and clears the GA cookies. Because RainCheck sends its SPA page views manually, disable “Page changes based on browser history events” in the GA4 web stream's Enhanced Measurement settings to avoid duplicates. Check Open-Meteo licensing and limits before commercial use. ChatGPT Free is not a programmable API and is not used in this MVP.

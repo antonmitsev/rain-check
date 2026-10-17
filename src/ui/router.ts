@@ -44,7 +44,8 @@ export class AppRouter {
   constructor(
     private readonly viewport: HTMLElement,
     private readonly homePage: HTMLElement,
-    private readonly onHomeActivated: () => void
+    private readonly onHomeActivated: () => void,
+    private readonly onRouteChanged: () => void = () => undefined
   ) {
     this.currentPage = homePage;
   }
@@ -54,6 +55,7 @@ export class AppRouter {
     const initialRoute = routeFromHash();
     if (initialRoute === 'home') {
       this.activateHome(false);
+      this.onRouteChanged();
       return;
     }
 
@@ -63,6 +65,7 @@ export class AppRouter {
     this.currentPage = createStaticPage(initialRoute);
     this.viewport.append(this.currentPage);
     this.finishActivation(this.currentPage, initialRoute, false);
+    this.onRouteChanged();
   }
 
   private activateHome(focusHeading: boolean): void {
@@ -94,6 +97,7 @@ export class AppRouter {
     this.currentRoute = nextRoute;
     this.currentPage = incoming;
     this.finishActivation(incoming, nextRoute, true);
+    this.onRouteChanged();
     if (nextRoute === 'home') this.onHomeActivated();
 
     await Promise.all([waitForAnimation(outgoing), waitForAnimation(incoming)]);

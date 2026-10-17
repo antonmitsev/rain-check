@@ -48,7 +48,7 @@ A single-page application showing the selected location, one weather check butto
 - Respect viewport width at every level (body, #app, shell, header, location controls, search form, weather card, recent checks and footer). Prevent intrinsic flex-item and input minimum widths from causing horizontal overflow, without masking it using overflow clipping. Maintain the centered 580px desktop maximum.
 - HTTPS is required for browser geolocation, except on localhost.
 - Do not store geolocation history on an application server.
-- No user accounts, database, or application-level tracking.
+- No user accounts or database. Optional Google Analytics 4 measures app usage only after explicit consent; refusal blocks the app's Google tag.
 - No paid services for the non-commercial MVP, subject to the Open-Meteo terms of service.
 - Provide loading and error states and disable actions during active requests.
 

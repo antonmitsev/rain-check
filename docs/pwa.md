@@ -21,6 +21,8 @@ Files under `public/` are copied to `dist/` by Vite. `npm run build` generates i
 
 About, T&C, and Cookies & Storage use `#/about`, `#/terms`, and `#/cookies`. Hash routing keeps every navigation on the precached `index.html`, so Apache fallback rules and extra HTML files are unnecessary. The Home weather screen remains mounted while an informational screen is open; returning does not discard its browser state or trigger a page reload. Route transitions respect the system reduced-motion preference.
 
+Google Analytics 4 is optional and is loaded only after explicit acceptance in the analytics prompt. The one-year consent cookie is shared across tonymitsev.com and RainCheck; the Cookies & Storage page lets visitors change it. Analytics requests are third-party network requests and are not needed for offline startup or weather functionality.
+
 ## Installation
 
 1. Build and deploy the application using [Apache/cPanel instructions](hosting-cpanel.md).

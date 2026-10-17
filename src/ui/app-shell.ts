@@ -2,6 +2,7 @@ export interface AppElements {
   routeViewport: HTMLDivElement;
   homeScreen: HTMLElement;
   toast: HTMLDivElement;
+  analyticsConsent: HTMLElement;
   versionBadge: HTMLSpanElement;
   connectionBanner: HTMLDivElement;
   connectionLabel: HTMLElement;
@@ -27,13 +28,21 @@ export interface AppElements {
 
 const appTemplate = `
 <section class="shell">
+<div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true" hidden></div>
+<aside class="analytics-consent" id="analytics-consent" aria-label="Analytics cookie preferences" hidden>
+  <p>RainCheck can use Google Analytics to understand app usage. Choose whether to allow analytics cookies.</p>
+  <div class="analytics-consent__actions">
+    <button type="button" data-analytics-consent="accepted">Accept analytics</button>
+    <button type="button" data-analytics-consent="rejected">Reject analytics</button>
+    <a href="#/cookies">Details</a>
+  </div>
+</aside>
 <header>
   <a class="brand" href="#/" aria-label="RainCheck home"><span class="brand-icon" aria-hidden="true">☁</span> RainCheck</a>
   <span class="version" id="app-version" title="Application build">v0.1</span>
 </header>
 <div class="route-viewport" id="route-viewport">
 <div class="route-page" id="home-screen" data-route-page="home">
-  <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true" hidden></div>
   <div class="connection-banner" id="connection-banner" role="status" aria-live="polite" hidden>
     <span class="connection-dot" aria-hidden="true"></span>
     <strong id="connection-label">ONLINE</strong>
@@ -121,6 +130,7 @@ export function mountAppShell(root: HTMLElement): AppElements {
     routeViewport: required<HTMLDivElement>(root, '#route-viewport'),
     homeScreen: required<HTMLElement>(root, '#home-screen'),
     toast: required<HTMLDivElement>(root, '#toast'),
+    analyticsConsent: required<HTMLElement>(root, '#analytics-consent'),
     versionBadge: required<HTMLSpanElement>(root, '#app-version'),
     connectionBanner: required<HTMLDivElement>(root, '#connection-banner'),
     connectionLabel: required<HTMLElement>(root, '#connection-label'),
