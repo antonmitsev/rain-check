@@ -7,7 +7,7 @@ RainCheck is an installable Progressive Web App (PWA) built with Vite, vanilla T
 - `public/manifest.webmanifest`: application name, relative scope/start URL, standalone mode, theme, and 192×192/512×512 PNG icons.
 - `public/icons/app-icon.svg`: RainCheck's shared vector artwork, from which PNG assets are generated.
 - `scripts/prepare-icons.mjs`: uses `@resvg/resvg-js` to build opaque **180×180 Apple touch**, **192×192 / 512×512 Web Manifest**, and **32×32 favicon** PNGs automatically.
-- `public/icons/`: generated PNG icons are included in the production build and the service-worker precache.
+- `public/icons/`: generated PNG icons are included in the production build and fetched by the browser when requested; they are not part of the service-worker startup precache.
 - `public/sw.js`: production service worker with build-specific cache identity and complete app-shell precaching.
 - `scripts/prepare-pwa.mjs`: postbuild script that lists hashed `dist/assets/` files, generates `dist/precache-manifest.json`, and embeds the build ID in `dist/sw.js`.
 - `index.html`: manifest, favicon, Apple touch icon, and mobile metadata.
@@ -33,7 +33,7 @@ Install prompts are browser-dependent. RainCheck does not display a custom insta
 
 ### iPhone icon troubleshooting
 
-If iOS installed RainCheck with a single **R** instead of its icon, confirm that the newly deployed `https://raincheck.tonymitsev.com/icons/apple-touch-icon.png` returns the generated **180×180 PNG**. `index.html` must contain `<link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png">`; Web Manifest icons alone are not a reliable iOS Home Screen fallback. `npm run build` creates these files from the shared SVG and the postbuild precache includes them.
+If iOS installed RainCheck with a single **R** instead of its icon, confirm that the newly deployed `https://raincheck.tonymitsev.com/icons/apple-touch-icon.png` returns the generated **180×180 PNG**. `index.html` must contain `<link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png">`; Web Manifest icons alone are not a reliable iOS Home Screen fallback. `npm run build` creates these files from the shared SVG and deploys them. The browser fetches the relevant icon when needed; the service worker does not download all icon sizes during installation.
 
 For an **already installed** Home Screen icon, remove the shortcut and add it again from Safari after deploying the build. The Home Screen icon may be retained across ordinary Service Worker updates. **Removing a shortcut is not the same as clearing Safari website data**; do not erase localStorage and saved forecasts to update an icon.
 
@@ -61,7 +61,7 @@ Selecting a history item displays the snapshot captured on its last check, with 
 
 ## Offline behavior
 
-During installation, the service worker reads `precache-manifest.json` and caches HTML, icons, the manifest, and **all hashed production JavaScript/CSS assets** before activating. Once installation has finished and the page has been reloaded online, the PWA can launch offline without missing scripts.
+During installation, the service worker reads `precache-manifest.json` and caches HTML, the manifest, and **all hashed production JavaScript/CSS assets** before activating. Icon files remain available from the deployment and are fetched when a browser or installation flow requests them; the app UI does not depend on them. Once installation has finished and the page has been reloaded online, the PWA can launch offline without missing scripts.
 
 **Offline data is historical.** After an online weather fetch, the app saves a time-stamped observation, the computed rain-stop forecast, and (when dry) the next expected rain onset in browser localStorage, along with the last selected location. Offline actions read these snapshots immediately without loaders or network calls. The single blue-to-yellow or yellow-to-blue gradient displays wet/dry conditions and the next predicted change. Prominent phase labels are in English. The small metadata line is limited to APPROXIMATE · Fetched on [date/time], prefixed with CACHED when showing offline data. The display labels stored forecasts as CACHED and includes the saved fetch time; the provider observation timestamp remains in localStorage but is not displayed. A previously viewed place can be restored when launching the PWA offline. If no snapshot exists, a clear empty-state message is shown.
 
@@ -86,7 +86,7 @@ The production app registers with `updateViaCache: 'none'`, explicitly checks fo
 ## Deployment checklist
 
 - [ ] `npm run build` succeeds and generates `dist/precache-manifest.json`.
-- [ ] A dedicated 180×180 Apple touch PNG and 32×32 favicon are generated and included in the PWA precache, with an explicit apple-touch-icon HTML link.
+- [ ] A dedicated 180×180 Apple touch PNG and 32×32 favicon are generated, deployed in `dist/icons/`, and available through explicit HTML/manifest links; they are not required in the startup precache.
 - [ ] Landscape uses two columns at suitable widths, with 920px shell cap and preserved mobile/portrait width; all controls stay within viewport.
 - [ ] `dist/sw.js` has a build-specific cache name with no `__CACHE_VERSION__` placeholder.
 - [ ] All JS and CSS files in `dist/assets/` appear in `precache-manifest.json`.

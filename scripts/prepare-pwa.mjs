@@ -48,9 +48,8 @@ if (!serviceWorker.includes('__CACHE_VERSION__')) {
 const cacheVersion = `${build.version}-${build.builtAt}`.replace(/[^A-Za-z0-9._-]/g, '-');
 await writeFile(swPath, serviceWorker.replaceAll('__CACHE_VERSION__', cacheVersion));
 
-// The entire app shell is cached on SW install, not lazily on the second visit.
-const precache = ['index.html', 'manifest.webmanifest',
-  'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png',
-  'icons/favicon-32.png', ...assets.sort()];
+// Icons stay deployed for browser/install requests but are fetched only when needed.
+// The offline app shell itself does not depend on image icons.
+const precache = ['index.html', 'manifest.webmanifest', ...assets.sort()];
 await writeFile(join(dist, 'precache-manifest.json'), JSON.stringify(precache, null, 2) + '\n');
 console.log(`PWA precache prepared: ${precache.length} files; cache ${cacheVersion}`);
