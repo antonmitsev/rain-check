@@ -1,0 +1,137 @@
+.shell {
+  width: 100%;
+  max-width: 580px;
+  min-width: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+  margin-inline: auto;
+  padding-top: max(32px, env(safe-area-inset-top));
+  padding-right: max(23px, env(safe-area-inset-right));
+  padding-bottom: max(38px, env(safe-area-inset-bottom));
+  padding-left: max(23px, env(safe-area-inset-left));
+  display: flex;
+  flex-direction: column;
+
+  > :not(.toast) {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+
+    .brand {
+      flex: 1 1 auto;
+      min-width: 0;
+      overflow: hidden;
+      font: 700 23px Outfit, sans-serif;
+      letter-spacing: -.5px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .version {
+      flex: 0 1 auto;
+      min-width: 0;
+      max-width: 42%;
+      overflow: hidden;
+      color: #8ba0b8;
+      border: 1px solid #38506b;
+      border-radius: 99px;
+      padding: 4px 10px;
+      font-size: 12px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+}
+
+.brand-icon {
+  margin-right: 6px;
+  color: #7fbdfd;
+  font-size: 35px;
+  vertical-align: -4px;
+}
+
+.hero {
+  min-width: 0;
+  max-width: 100%;
+  padding: 28px 0 26px;
+
+  h1 {
+    margin: 12px 0 0;
+    font: 800 clamp(19px, 5.2vw, 36px) / 1.15 Outfit, sans-serif;
+    letter-spacing: .3px;
+    white-space: nowrap;
+
+    em {
+      color: #7cb5fd;
+      font-style: normal;
+    }
+  }
+}
+
+.eyebrow {
+  min-width: 0;
+  max-width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 8px;
+  row-gap: 2px;
+  color: #8ebafa;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.65;
+  letter-spacing: .8px;
+  overflow-wrap: anywhere;
+}
+
+.eyebrow-lead,
+.eyebrow-details {
+  white-space: nowrap;
+}
+
+.eyebrow-separator {
+  padding-right: 4px;
+  color: #6a849f;
+}
+
+.weather-workspace,
+.weather-workspace__result {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+footer {
+  min-width: 0;
+  max-width: 100%;
+  margin-top: auto;
+  padding-top: 26px;
+  color: #8ca0b8;
+  font-size: 11px;
+  line-height: 1.7;
+  text-align: center;
+  overflow-wrap: anywhere;
+
+  a {
+    color: #93c6ff;
+  }
+
+  .credits {
+    margin-top: 11px;
+    padding-top: 11px;
+    border-top: 1px solid #283b52;
+    color: #8ca0b8;
+
+    a {
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+  }
+}

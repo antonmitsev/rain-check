@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { rainNow, rainStarts, rainUntil, describeRainNow } from '../src/weather.js';
+import { rainNow, rainStarts, rainUntil, describeRainNow } from '../src/domain/weather.ts';
 
 const current = { time: '2026-10-16T13:45', rain: 0, showers: 0 };
 function forecast({ currentValues = {}, times = [

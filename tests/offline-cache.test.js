@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { rememberLocation, getLastLocation, saveWeatherSnapshot, getWeatherSnapshot, formatCachedWeather } from '../src/offline-cache.js';
+import { rememberLocation, getLastLocation, saveWeatherSnapshot, getWeatherSnapshot, formatCachedWeather } from '../src/storage/weather-store.ts';
 
 function storage() {
   const entries = new Map();

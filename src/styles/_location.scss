@@ -1,0 +1,141 @@
+.location-panel {
+  min-width: 0;
+  max-width: 100%;
+  padding: 17px;
+  border: 1px solid #334a63;
+  border-radius: 18px;
+  background: #18283d;
+}
+
+.location-line {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  > div {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  small {
+    display: block;
+    margin-bottom: 4px;
+    color: #98aac2;
+  }
+
+  strong {
+    display: block;
+    font-size: 14px;
+    overflow-wrap: anywhere;
+  }
+
+  > .link-btn {
+    flex: 0 0 auto;
+    padding: 8px 5px;
+    white-space: nowrap;
+  }
+}
+
+.pin {
+  color: #81bfff;
+  font-size: 32px;
+}
+
+.location-status {
+  margin-top: 5px !important;
+  color: #72d6ac !important;
+  font-size: 11px;
+}
+
+.link-btn {
+  padding: 8px;
+  border: 0;
+  color: #8abfff;
+  background: transparent;
+  font-weight: 700;
+}
+
+form {
+  margin-top: 14px;
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+  color: #aabbd0;
+  font-size: 12px;
+}
+
+.city-input {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  display: flex;
+  gap: 8px;
+
+  input {
+    width: 0;
+    min-width: 0;
+    flex: 1 1 0;
+    padding: 12px;
+    border: 1px solid #4a6079;
+    border-radius: 9px;
+    color: white;
+    background: #0f1d30;
+  }
+
+  button {
+    flex: 0 0 auto;
+    padding: 12px 16px;
+    border: 0;
+    border-radius: 9px;
+    color: white;
+    background: #3f82df;
+    font-weight: 700;
+  }
+}
+
+.suggestions {
+  max-height: 280px;
+  margin-top: 8px;
+  overflow: hidden auto;
+  border: 1px solid #4a6079;
+  border-radius: 11px;
+  background: #0f1d30;
+
+  &[hidden] {
+    display: none;
+  }
+}
+
+.suggestion-item {
+  width: 100%;
+  display: block;
+  padding: 13px 14px;
+  border: 0;
+  border-bottom: 1px solid #2d425a;
+  color: #edf5ff;
+  background: transparent;
+  font-size: 13px;
+  text-align: left;
+
+  &:last-child {
+    border-bottom: 0;
+  }
+
+  &:hover,
+  &:focus,
+  &.active {
+    outline: none;
+    background: #284768;
+  }
+}
+
+.suggestion-empty {
+  padding: 14px;
+  color: #9fb1c6;
+  font-size: 13px;
+}

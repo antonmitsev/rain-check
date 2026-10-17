@@ -1,6 +1,6 @@
 # RainCheck PWA
 
-RainCheck is an installable Progressive Web App (PWA) built with Vite and vanilla JavaScript.
+RainCheck is an installable Progressive Web App (PWA) built with Vite, vanilla TypeScript, and modular SCSS.
 
 ## Included components
 
@@ -11,9 +11,10 @@ RainCheck is an installable Progressive Web App (PWA) built with Vite and vanill
 - `public/sw.js`: production service worker with build-specific cache identity and complete app-shell precaching.
 - `scripts/prepare-pwa.mjs`: postbuild script that lists hashed `dist/assets/` files, generates `dist/precache-manifest.json`, and embeds the build ID in `dist/sw.js`.
 - `index.html`: manifest, favicon, Apple touch icon, and mobile metadata.
-- `src/main.js`: registers the service worker after page load.
+- `src/main.ts`: mounts and starts the browser application.
+- `src/pwa/register-service-worker.ts`: registers the service worker after page load and owns the update lifecycle.
 
-Files under `public/` are copied to `dist/` by Vite. `npm run build` runs `node scripts/prepare-icons.mjs && vite build && node scripts/prepare-pwa.mjs`. Running `vite build` alone does not finish PWA packaging. The development server does not register the service worker.
+Files under `public/` are copied to `dist/` by Vite. `npm run build` generates icons, runs the strict TypeScript check, compiles TypeScript/SCSS with Vite, and prepares the PWA precache. Running `vite build` alone does not finish PWA packaging. The development server does not register the service worker.
 
 ## Installation
 

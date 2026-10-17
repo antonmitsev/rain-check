@@ -3,7 +3,7 @@
 ## Data flow
 
 ```text
-Browser (Vite + vanilla JavaScript)
+Browser (Vite + vanilla TypeScript, compiled to JavaScript)
  ├── Geolocation API → coordinates → OSM Nominatim reverse lookup (once per explicit selection)
  ├── Manual city input → debounced Open-Meteo Geocoding suggestions → selected coordinates
  └── Open-Meteo Forecast API → in-memory cache (10 minutes)
@@ -14,6 +14,22 @@ Browser (Vite + vanilla JavaScript)
 ```
 
 No backend, React runtime, database, or OpenAI API key is required.
+
+## Source responsibilities
+
+The browser code uses strict TypeScript without a UI framework. `src/main.ts` only mounts the shell, starts the application coordinator, and registers the PWA lifecycle. Responsibilities are kept in separate modules:
+
+| Area | Source | Responsibility |
+| --- | --- | --- |
+| Application | `src/app/` | A small composition root wires dedicated location, weather, connectivity, and busy-state controllers without owning provider, storage, or rendering details. |
+| Domain | `src/domain/weather.ts` | Pure rainfall and forecast interpretation. |
+| Services | `src/services/` | Open-Meteo weather/geocoding requests and browser geolocation. |
+| Storage | `src/storage/weather-store.ts` | Validation, bounded snapshots, last location, and explicit-check history. |
+| UI | `src/ui/` | App shell, toast, summary, history, suggestions, connectivity, and build badge rendering. |
+| PWA | `src/pwa/register-service-worker.ts` | Service-worker registration, update checks, and safe refresh behavior. |
+| Styles | `src/styles/` | SCSS partials grouped by layout, location, weather, history, feedback, and responsive behavior. |
+
+Shared browser/domain contracts live in `src/types.ts`. Vite transpiles TypeScript and Sass for the browser; `npm run typecheck` performs the strict static check, while the complete `npm run build` also generates icons and the PWA precache package.
 
 ## API requests
 
@@ -43,7 +59,7 @@ The single **Check weather** action populates one compact two-phase gradient sum
 
 ## Answer algorithm
 
-The pure functions in `src/weather.js` implement forecast interpretation and can be tested without the UI using `tests/weather.test.js` (`npm test`).
+The pure functions in `src/domain/weather.ts` implement forecast interpretation and can be tested without the UI using `tests/weather.test.js` (`npm test`).
 
 ### Is it raining?
 
@@ -81,23 +97,23 @@ The icon master is `public/icons/app-icon.svg`. `scripts/prepare-icons.mjs` rend
 
 ## Recent weather check history
 
-The recent-check section renders up to three clickable results from `getWeatherHistory()` in `src/offline-cache.js`. If the list is empty, the entire section is hidden; otherwise each item includes a compact, parsed next-change summary (for example, `Starts ~19:00`) rather than the raw forecast sentence. An explicit `Check weather` action copies its matching time-stamped weather snapshot to `history[]` under the existing `raincheck:offline:v1` localStorage key. Entries are deduplicated by the same rounded coordinate key as forecast caching, and only the latest explicit check for a location is retained. Each entry stores the place, explicit-check time, and a **copy** of the forecast snapshot at that check, so a later silent prefetch cannot silently change history.
+The recent-check section renders up to three clickable results from `getWeatherHistory()` in `src/storage/weather-store.ts`; `src/ui/history.ts` owns only the accessible DOM projection. If the list is empty, the entire section is hidden; otherwise each item includes a compact, parsed next-change summary (for example, `Starts ~19:00`) rather than the raw forecast sentence. An explicit `Check weather` action copies its matching time-stamped weather snapshot to `history[]` under the existing `raincheck:offline:v1` localStorage key. Entries are deduplicated by the same rounded coordinate key as forecast caching, and only the latest explicit check for a location is retained. Each entry stores the place, explicit-check time, and a **copy** of the forecast snapshot at that check, so a later silent prefetch cannot silently change history.
 
-The global CSS reset uses `box-sizing: border-box`, while `html`, `body`, `#app`, and the centered `.shell` have explicit 100% width constraints. The `.shell` uses `width: 100%; max-width: 580px` with automatic horizontal margins on desktop. Direct flex children and inner layout sections are constrained to `min-width: 0; max-width: 100%`, so intrinsic content widths cannot stretch the page. Header brand/version flex items can truncate long build hashes, the city input uses `flex: 1 1 0` and `width: 0` to shrink alongside its submit button, and the heading may wrap on narrow screens. Each history entry is a single card containing sibling buttons: a full-card result button and a small absolutely positioned delete button in the card's top-right corner. This avoids nested interactive controls while keeping both actions inside the card. Long names and forecasts wrap without expanding either the card or viewport. `removeWeatherHistoryItem()` removes a single matching location from `history[]` only and leaves saved forecast snapshots and last selected location unchanged. The delete control does not open its history entry or make an API call.
+The compiled SCSS reset uses `box-sizing: border-box`, while `html`, `body`, `#app`, and the centered `.shell` have explicit 100% width constraints. The `.shell` uses `width: 100%; max-width: 580px` with automatic horizontal margins on desktop. Direct flex children and inner layout sections are constrained to `min-width: 0; max-width: 100%`, so intrinsic content widths cannot stretch the page. Header brand/version flex items can truncate long build hashes, the city input uses `flex: 1 1 0` and `width: 0` to shrink alongside its submit button, and the heading may wrap on narrow screens. Each history entry is a single card containing sibling buttons: a full-card result button and a small absolutely positioned delete button in the card's top-right corner. This avoids nested interactive controls while keeping both actions inside the card. Long names and forecasts wrap without expanding either the card or viewport. `removeWeatherHistoryItem()` removes a single matching location from `history[]` only and leaves saved forecast snapshots and last selected location unchanged. The delete control does not open its history entry or make an API call.
 
 Opening a history item updates the selected location and renders its stored snapshot directly; it deliberately bypasses `setLocation()`, which would normally start a background prefetch. No GPS, geocoding, or weather request is made, regardless of network connectivity. Merely opening an entry does not mutate its recency or snapshot. Offline explicit checks can refresh the history order using the matching snapshot. Storage failures are tolerated. Coverage includes `tests/history.test.js`.
 
 ## Persistent offline weather snapshots
 
-The `src/offline-cache.js` module stores the most recently selected place and up to eight compact, time-stamped weather snapshots in browser localStorage. Coordinates are rounded to three decimals before persistence. Each snapshot contains the time downloaded, the provider's current weather timestamp (when available), the observed rain/no-rain state, the rain-stop forecast, and (when currently dry) the next expected rain onset, as computed at fetch time. Offline rain onset strings use an **absolute calendar date** instead of relative `today` or `tomorrow` wording. A new location triggers silent weather prefetch; later button presses reuse the existing 10-minute in-memory cache.
+The `src/storage/weather-store.ts` module stores the most recently selected place and up to eight compact, time-stamped weather snapshots in browser localStorage. Coordinates are rounded to three decimals before persistence. Each snapshot contains the time downloaded, the provider's current weather timestamp (when available), the observed rain/no-rain state, the rain-stop forecast, and (when currently dry) the next expected rain onset, as computed at fetch time. Offline rain onset strings use an **absolute calendar date** instead of relative `today` or `tomorrow` wording. A new location triggers silent weather prefetch; later button presses reuse the existing 10-minute in-memory cache owned by `src/services/weather-service.ts`.
 
 When `navigator.onLine` is false, the UI keeps the weather button clickable and immediately formats the matching saved snapshot. No loader, API request, GPS lookup, or suggestion search is started. Any inflight weather and city requests are aborted when the offline event occurs. When the app starts offline, it restores the last saved location and presents the saved conditions, if available. A missing snapshot produces an informative empty state; an online provider failure can also fall back to saved data, clearly marked historical. localStorage access failures are tolerated without breaking the app.
 
-The `src/offline-cache.js` helpers have unit tests in `tests/offline-cache.test.js`, executed with `npm test`.
+The storage helpers have unit tests in `tests/offline-cache.test.js`, executed with `npm test`.
 
 ## Build identification
 
-The custom Vite plugin in `vite.config.js` emits `version.json` into the production bundle at build time. This static file contains the semantic version from `package.json`, the UTC build timestamp, and Git HEAD or CI-provided SHA when available. No server-side runtime is needed. The service worker bypasses its cache for this endpoint. A single build metadata object is generated during Vite configuration. The build injects it into the JavaScript bundle using `define: { __BUILD_INFO__: ... }` and emits the same object as `dist/version.json`. The UI header reads bundled `__BUILD_INFO__`, so its version and seven-character commit hash always identify the actual running JavaScript, even when offline. It shows only the version if the commit is unavailable. In contrast, the network-only `version.json` endpoint identifies the currently deployed build and may differ from a cached PWA.
+The custom Vite plugin in `vite.config.ts` emits `version.json` into the production bundle at build time. This static file contains the semantic version from `package.json`, the UTC build timestamp, and Git HEAD or CI-provided SHA when available. No server-side runtime is needed. The service worker bypasses its cache for this endpoint. A single build metadata object is generated during Vite configuration. The build injects it into the JavaScript bundle using `define: { __BUILD_INFO__: ... }` and emits the same object as `dist/version.json`. The UI header reads bundled `__BUILD_INFO__`, so its version and seven-character commit hash always identify the actual running JavaScript, even when offline. It shows only the version if the commit is unavailable. In contrast, the network-only `version.json` endpoint identifies the currently deployed build and may differ from a cached PWA.
 
 ## Connectivity state
 
@@ -115,7 +131,7 @@ The `public/.htaccess` file is copied to `dist/.htaccess` during the Vite build.
 
 The HTML and version metadata use Apache `Cache-Control: no-store`. The service worker precaches its full hashed app shell with HTTP-cache bypasses before calling `skipWaiting()` and `clients.claim()`. New worker scripts differ each build because `scripts/prepare-pwa.mjs` embeds the UTC build identity.
 
-Production `src/main.js` registers the worker with `updateViaCache: 'none'` and checks `registration.update()` on page load, focus, restored visibility, and when online resumes. The `controllerchange` listener reloads an already-controlled online page once after a new worker activates; it does not reload for the initial worker installation or when offline (reloading is deferred until reconnection). Browser localStorage weather snapshots and recent-check history are untouched. Updating a legacy installed app that predates this listener may need an initial manual page reload.
+Production `src/pwa/register-service-worker.ts` registers the worker with `updateViaCache: 'none'` and checks `registration.update()` on page load, focus, restored visibility, and when online resumes. The `controllerchange` listener reloads an already-controlled online page once after a new worker activates; it does not reload for the initial worker installation or when offline (reloading is deferred until reconnection). Browser localStorage weather snapshots and recent-check history are untouched. Updating a legacy installed app that predates this listener may need an initial manual page reload.
 
 ## Deployment
 
