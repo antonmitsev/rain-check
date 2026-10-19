@@ -36,29 +36,16 @@ function clearAnalyticsCookies(): void {
   }
 }
 
-function readLegacyConsent(): AnalyticsConsent | null {
-  try {
-    const value = window.localStorage.getItem(consentKey);
-    return value === 'accepted' || value === 'rejected' ? value : null;
-  } catch {
-    return null;
-  }
-}
-
 function readConsent(): AnalyticsConsent | null {
   const shared = readCookieConsent();
-  if (shared) {
-    if (shared === 'rejected') clearAnalyticsCookies();
-    return shared;
-  }
-
-  const legacy = readLegacyConsent();
-  if (legacy) {
-    writeCookieConsent(legacy);
-  } else {
+  // A localStorage compatibility copy must never revive an expired cookie.
+  if (!shared) {
+    clearAnalyticsCookies();
+    try { window.localStorage.removeItem(consentKey); } catch { /* Storage can be unavailable. */ }
+  } else if (shared === 'rejected') {
     clearAnalyticsCookies();
   }
-  return legacy;
+  return shared;
 }
 
 function pagePath(): string {
@@ -83,20 +70,24 @@ export class AnalyticsController {
 
   pageChanged(title: string): void {
     this.currentPage = { title, path: pagePath() };
-    this.updateConsentLabels();
+    this.syncSharedConsent();
     if (this.consent === 'accepted' && this.loaded) this.trackPageView();
   }
 
   private syncSharedConsent(): void {
     const shared = readCookieConsent();
-    if (!shared || shared === this.consent) return;
+    if (shared === this.consent) {
+      this.updateConsentLabels();
+      return;
+    }
 
     this.consent = shared;
-    this.banner.hidden = true;
+    this.banner.hidden = shared !== null;
     try {
-      window.localStorage.setItem(consentKey, shared);
+      if (shared) window.localStorage.setItem(consentKey, shared);
+      else window.localStorage.removeItem(consentKey);
     } catch {
-      // The shared cookie remains the source of truth if storage is unavailable.
+      // A stored compatibility copy must never override the cookie's lifetime.
     }
     this.updateConsentLabels();
     if (shared === 'accepted') {
@@ -128,8 +119,12 @@ export class AnalyticsController {
       // The choice still applies for this page view if storage is unavailable.
     }
 
+    // Honor the actual cookie write; do not treat session/localStorage alone as
+    // a valid consent after cookies are blocked or the shared cookie expires.
+    this.consent = readCookieConsent();
+    this.banner.hidden = this.consent !== null;
     this.updateConsentLabels();
-    if (choice === 'accepted') {
+    if (this.consent === 'accepted') {
       this.enableAnalytics();
     } else if (this.loaded) {
       window.gtag?.('consent', 'update', { analytics_storage: 'denied' });
@@ -141,6 +136,10 @@ export class AnalyticsController {
     const label = this.consent ? `Current choice: ${this.consent}.` : 'No analytics choice saved yet.';
     document.querySelectorAll<HTMLElement>('.analytics-consent-status').forEach(status => {
       status.textContent = label;
+    });
+    // Hide both preference actions while the consent cookie is still valid.
+    document.querySelectorAll<HTMLButtonElement>('.analytics-preferences [data-analytics-consent]').forEach(button => {
+      button.hidden = this.consent !== null;
     });
   }
 
