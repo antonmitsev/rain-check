@@ -6,3 +6,6 @@
 @use 'history';
 @use 'feedback';
 @use 'responsive';
+
+/* Consent controls disappear while a valid shared preference cookie exists. */
+.analytics-preferences [data-analytics-consent][hidden] { display: none !important; }
