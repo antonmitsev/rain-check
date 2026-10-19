@@ -31,6 +31,10 @@ The browser code uses strict TypeScript without a UI framework. `src/main.ts` on
 
 Shared browser/domain contracts live in `src/types.ts`. Vite transpiles TypeScript and Sass for the browser; `npm run typecheck` performs the strict static check, while the complete `npm run build` also generates icons and the PWA precache package.
 
+## Analytics consent preference lifecycle
+
+`src/services/analytics-controller.ts` reads the shared one-year `tm_analytics_consent` cookie as the sole authority for analytics permission. In the Cookies & Storage screen it toggles the `hidden` state of both consent buttons while a valid accepted/rejected cookie exists, retaining the visible choice label. On focus, visibility changes, and route navigation, preferences are synchronized. The localStorage compatibility entry cannot resurrect an expired cookie. If consent disappears while GA4 was loaded, deny analytics storage and reload, so tracking cannot continue on the old page. See `docs/ga4-tracking.md`.
+
 ## Informational routing
 
 `src/ui/router.ts` owns the dependency-free routes `#/about`, `#/terms`, and `#/cookies`. It keeps the Home DOM mounted so location, forecast, and history state survive navigation. Only route content slides: the shared header, footer, and informational navigation remain stationary. The RainCheck brand in the shared header is the Home link, while the build version remains visible. Forward navigation moves left; Home and browser Back return right. `src/ui/static-pages.ts` owns only the concise page copy and markup. Direct hash links require no Apache fallback, remain compatible with the cached single entry point, update the document title, and move programmatic focus to the new non-interactive heading without drawing a control-style outline. Route animation is disabled when reduced motion is requested. The weather application starts only when Home is first shown, avoiding a geolocation prompt on a directly opened informational route.
