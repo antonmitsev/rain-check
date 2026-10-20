@@ -45,6 +45,10 @@ Upload **all contents of `dist/`**, including `precache-manifest.json` and hidde
 
 **[Apache, cPanel, DNS and optional Git deployment instructions](docs/hosting-cpanel.md)**
 
+## Opening external links on iPhone
+
+When installed as an iOS 17+ Home Screen app, RainCheck attempts to open user-tapped external **HTTPS** links in **Safari**, rather than an in-app viewer, with a non-standard `x-safari-https://` URL scheme. Regular Safari, older iOS, other platforms, internal hash routes and same-origin links keep normal navigation. This workaround is community-reported, not a guaranteed Apple API; it needs confirmation on a physical installed PWA.
+
 ## iPhone Home Screen icon
 
 RainCheck provides a dedicated, opaque **180×180 PNG** Apple touch icon (not just a Web Manifest icon). The artwork lives in `public/icons/app-icon.svg` and `scripts/prepare-icons.mjs` generates `apple-touch-icon.png`, `icon-192.png`, `icon-512.png`, and `favicon-32.png` **before both development and production builds**. The icons ship in `dist/icons/` for browser and installation requests, but are fetched on demand rather than during service-worker installation, keeping them out of the startup precache. The complete build uses:
