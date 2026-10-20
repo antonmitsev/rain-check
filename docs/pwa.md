@@ -43,12 +43,6 @@ For an **already installed** Home Screen icon, remove the shortcut and add it ag
 
 Portrait keeps a centered **580px max-width** single-column layout. On landscape viewports at least **740px** wide, the shell expands up to **920px**, with location and city search on the **left**, the **Check weather** button and unified forecast on the **right**, and recent history below. The layout retains min-width guards, safe-area padding for iPhone, natural vertical scrolling on short-height landscape screens, and responsive history columns. Narrower landscape viewports stay single-column.
 
-## External links from the installed iPhone PWA
-
-Installed iOS PWAs may open ordinary `target="_blank"` links inside an in-app viewer instead of Safari. On **iOS 17 and later**, RainCheck intercepts deliberate taps on **external HTTPS** links *only while running standalone* and navigates to `x-safari-https://...`. This scheme is not part of the Web platform standard and was reported to work on iOS 17, 18.5, and 26, but Apple can change its behavior. If the scheme stops working, standard browser navigation still applies in regular Safari and on other platforms; there is no guaranteed fallback once the non-standard scheme is invoked in standalone mode.
-
-The link's normal `href` remains the HTTPS destination so copy-link, long press, other browsers, and ordinary navigation keep useful URLs. Internal `#/about`, `#/terms`, and `#/cookies` routes and same-origin links are excluded. This is implemented by `src/ui/external-links.ts`, registered once on startup. The behavior needs real-device verification with an installed iOS PWA; no visual or automated test was run as part of the change.
-
 ## Connection indicator and theme
 
 RainCheck hides its connection banner during normal online operation to keep the forecast higher on the page. The warning banner appears only while offline or when the origin server is unreachable:

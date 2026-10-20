@@ -6,13 +6,11 @@ import { showBuildVersion } from './ui/build-version';
 import { AppRouter } from './ui/router';
 import { createToastView } from './ui/toast';
 import { AnalyticsController } from './services/analytics-controller';
-import { installExternalLinkRouting } from './ui/external-links';
 
 const root = document.querySelector<HTMLElement>('#app');
 if (!root) throw new Error('RainCheck requires an #app root element.');
 
 const elements = mountAppShell(root);
-installExternalLinkRouting();
 showBuildVersion(elements.versionBadge);
 const analytics = new AnalyticsController(elements.analyticsConsent);
 
