@@ -1,0 +1,3 @@
+[submodule "vendor/pwa-playbook"]
+	path = vendor/pwa-playbook
+	url = https://github.com/antonmitsev/pwa-playbook.git

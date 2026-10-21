@@ -109,14 +109,16 @@ Vite + strict vanilla TypeScript + modular SCSS. There is no React runtime; this
 
 ## Documentation
 
-- [PWA Generation Playbook — reusable engineering and UX reference for AI agents](docs/PWA_Generation_Playbook.md)
-  - [Appendix C — Executable PWA reference architecture](docs/playbook/appendix-c-reference-architecture.md)
-  - [Appendix D — Domain/API specification template](docs/playbook/appendix-d-domain-specification.md)
-  - [Appendix E — UX tokens, components and iOS icons](docs/playbook/appendix-e-ux-design-system.md)
+- [PWA Generation Playbook — shared engineering and UX reference for AI agents](vendor/pwa-playbook/docs/PWA_Generation_Playbook.md)
+  - [Appendix C — Executable PWA reference architecture](vendor/pwa-playbook/docs/playbook/appendix-c-reference-architecture.md)
+  - [Appendix D — Domain/API specification template](vendor/pwa-playbook/docs/playbook/appendix-d-domain-specification.md)
+  - [Appendix E — UX tokens, components and iOS icons](vendor/pwa-playbook/docs/playbook/appendix-e-ux-design-system.md)
 - [MVP requirements](docs/requirements.md)
 - [Architecture and algorithm](docs/architecture.md)
 - [Apache shared hosting / cPanel](docs/hosting-cpanel.md)
 - [PWA installation and offline behavior](docs/pwa.md)
+
+The shared Playbook is pinned as a Git submodule. Clone this repository with `git clone --recurse-submodules https://github.com/antonmitsev/rain-check.git`, or run `git submodule update --init --recursive` in an existing checkout. RainCheck-specific requirements, architecture, PWA behavior, and deployment instructions remain in the local `docs/` directory.
 
 ## Limitations
 

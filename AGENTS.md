@@ -1,6 +1,6 @@
 # RainCheck — AI Agent Guide
 
-Read [the reusable PWA Generation Playbook](docs/PWA_Generation_Playbook.md) and its [Reference Architecture](docs/playbook/appendix-c-reference-architecture.md), [Domain Specification](docs/playbook/appendix-d-domain-specification.md) and [UX/Icon System](docs/playbook/appendix-e-ux-design-system.md) before planning significant PWA, responsive layout, offline storage, Service Worker, deployment, or UX changes.
+Read [the shared PWA Generation Playbook](vendor/pwa-playbook/docs/PWA_Generation_Playbook.md) and its [Reference Architecture](vendor/pwa-playbook/docs/playbook/appendix-c-reference-architecture.md), [Domain Specification](vendor/pwa-playbook/docs/playbook/appendix-d-domain-specification.md) and [UX/Icon System](vendor/pwa-playbook/docs/playbook/appendix-e-ux-design-system.md) before planning significant PWA, responsive layout, offline storage, Service Worker, deployment, or UX changes. If the submodule is missing after cloning, run `git submodule update --init --recursive`.
 
 The playbook is **generic guidance**, not an instruction to rebuild RainCheck. For RainCheck-specific behavior, use [requirements](docs/requirements.md), [architecture](docs/architecture.md), [PWA documentation](docs/pwa.md), and [Apache/cPanel deployment](docs/hosting-cpanel.md).
 
