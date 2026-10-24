@@ -14,6 +14,7 @@ export interface CityMatch {
 
 export interface WeatherCurrent {
   time?: string;
+  temperature_2m?: number | null;
   rain?: number | null;
   showers?: number | null;
   precipitation?: number | null;
@@ -21,6 +22,7 @@ export interface WeatherCurrent {
 
 export interface WeatherHourly {
   time?: Array<string | null>;
+  temperature_2m?: Array<number | null>;
   rain?: Array<number | null>;
   showers?: Array<number | null>;
   precipitation?: Array<number | null>;
@@ -38,6 +40,8 @@ export interface WeatherSnapshot {
   stopForecast: string;
   nextRainForecast: string | null;
   observedAt: string | null;
+  currentTemperature: number | null;
+  transitionTemperature: number | null;
 }
 
 export interface WeatherHistoryEntry {

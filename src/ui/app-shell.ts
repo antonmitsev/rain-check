@@ -21,6 +21,8 @@ export interface AppElements {
   summaryNext: HTMLElement;
   summaryTime: HTMLElement;
   summaryDay: HTMLElement;
+  summaryCurrentTemperature: HTMLElement;
+  summaryTransitionTemperature: HTMLElement;
   summaryMeta: HTMLElement;
   historyPanel: HTMLElement;
   historyList: HTMLDivElement;
@@ -87,12 +89,14 @@ const appTemplate = `
           <div class="summary-main">
             <div class="summary-phase summary-current">
               <strong class="summary-headline" id="summary-now">—</strong>
+              <span class="summary-temperature" id="summary-current-temperature"></span>
             </div>
             <span class="summary-arrow" aria-hidden="true">→</span>
             <div class="summary-phase summary-future">
               <strong class="summary-headline summary-transition" id="summary-next">—</strong>
               <strong class="summary-time" id="summary-time"></strong>
               <span class="summary-day" id="summary-day"></span>
+              <span class="summary-temperature" id="summary-transition-temperature"></span>
             </div>
           </div>
           <p class="summary-meta" id="summary-meta">Check weather to see the forecast.</p>
@@ -149,6 +153,8 @@ export function mountAppShell(root: HTMLElement): AppElements {
     summaryNext: required<HTMLElement>(root, '#summary-next'),
     summaryTime: required<HTMLElement>(root, '#summary-time'),
     summaryDay: required<HTMLElement>(root, '#summary-day'),
+    summaryCurrentTemperature: required<HTMLElement>(root, '#summary-current-temperature'),
+    summaryTransitionTemperature: required<HTMLElement>(root, '#summary-transition-temperature'),
     summaryMeta: required<HTMLElement>(root, '#summary-meta'),
     historyPanel: required<HTMLElement>(root, '#recent-checks'),
     historyList: required<HTMLDivElement>(root, '#history-list')

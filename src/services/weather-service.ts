@@ -51,8 +51,8 @@ export class WeatherService {
     url.search = new URLSearchParams({
       latitude: String(location.latitude),
       longitude: String(location.longitude),
-      current: 'rain,showers,precipitation',
-      hourly: 'rain,showers,precipitation,precipitation_probability',
+      current: 'rain,showers,precipitation,temperature_2m',
+      hourly: 'rain,showers,precipitation,precipitation_probability,temperature_2m',
       forecast_days: '2',
       timezone: 'auto'
     }).toString();

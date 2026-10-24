@@ -22,6 +22,8 @@ interface SnapshotInput {
   stopForecast: string;
   nextRainForecast?: string | null;
   observedAt?: string | null;
+  currentTemperature?: number | null;
+  transitionTemperature?: number | null;
 }
 
 function emptyStore(): PersistedStore {
@@ -98,7 +100,11 @@ function safeSnapshot(value: unknown): WeatherSnapshot | null {
       ? snapshot.observedAt.slice(0, 25) : null,
     stopForecast: snapshot.stopForecast.slice(0, 400),
     nextRainForecast: typeof snapshot.nextRainForecast === 'string'
-      ? snapshot.nextRainForecast.slice(0, 400) : null
+      ? snapshot.nextRainForecast.slice(0, 400) : null,
+    currentTemperature: Number.isFinite(snapshot.currentTemperature)
+      ? Number(snapshot.currentTemperature) : null,
+    transitionTemperature: Number.isFinite(snapshot.transitionTemperature)
+      ? Number(snapshot.transitionTemperature) : null
   };
 }
 

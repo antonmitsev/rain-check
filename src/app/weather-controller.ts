@@ -1,4 +1,4 @@
-import { rainNow, rainStarts, rainUntil } from '../domain/weather';
+import { rainNow, rainStarts, rainUntil, transitionTemperature } from '../domain/weather';
 import { WeatherService } from '../services/weather-service';
 import {
   getWeatherHistory,
@@ -38,6 +38,8 @@ export class WeatherController {
       next: elements.summaryNext,
       time: elements.summaryTime,
       day: elements.summaryDay,
+      currentTemperature: elements.summaryCurrentTemperature,
+      transitionTemperature: elements.summaryTransitionTemperature,
       meta: elements.summaryMeta
     });
   }
@@ -93,7 +95,9 @@ export class WeatherController {
         : 'No reliable forecast is available.';
     this.summary.display(snapshot.raining, forecastText, {
       cached: true,
-      savedAt: snapshot.savedAt
+      savedAt: snapshot.savedAt,
+      currentTemperature: snapshot.currentTemperature,
+      transitionTemperature: snapshot.transitionTemperature
     });
     this.toast.show('Showing saved weather.', 'offline');
   }
@@ -134,7 +138,10 @@ export class WeatherController {
       observedAt: forecast.data.current?.time,
       stopForecast: rainUntil(forecast.data),
       nextRainForecast: raining === false
-        ? rainStarts(forecast.data, { absoluteDate: true }) : null
+        ? rainStarts(forecast.data, { absoluteDate: true }) : null,
+      currentTemperature: Number.isFinite(forecast.data.current?.temperature_2m)
+        ? Number(forecast.data.current?.temperature_2m) : null,
+      transitionTemperature: transitionTemperature(forecast.data, raining)
     });
     return forecast.data;
   }
@@ -168,7 +175,9 @@ export class WeatherController {
         raining,
         raining === true ? rainUntil(data)
           : raining === false ? rainStarts(data) : 'Current conditions are uncertain.',
-        { savedAt: saved?.savedAt ?? null }
+        { savedAt: saved?.savedAt ?? null,
+          currentTemperature: saved?.currentTemperature,
+          transitionTemperature: saved?.transitionTemperature }
       );
       this.toast.show('Weather updated.', 'success');
 

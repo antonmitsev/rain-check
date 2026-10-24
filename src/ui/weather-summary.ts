@@ -6,33 +6,39 @@ interface SummaryElements {
   next: HTMLElement;
   time: HTMLElement;
   day: HTMLElement;
+  currentTemperature: HTMLElement;
+  transitionTemperature: HTMLElement;
   meta: HTMLElement;
 }
 
 export interface DisplayWeatherOptions {
   cached?: boolean;
   savedAt?: number | null;
+  currentTemperature?: number | null;
+  transitionTemperature?: number | null;
 }
 
 export class WeatherSummaryView {
   constructor(private readonly elements: SummaryElements) {}
 
   clear(): void {
-    const { card, now, next, time, day, meta } = this.elements;
+    const { card, now, next, time, day, meta, currentTemperature, transitionTemperature } = this.elements;
     card.className = 'weather-summary neutral';
     now.textContent = '—';
     next.textContent = '—';
     time.textContent = '';
     day.textContent = '';
+    currentTemperature.textContent = '';
+    transitionTemperature.textContent = '';
     meta.textContent = 'Check weather to see the forecast.';
   }
 
   display(
     raining: boolean | null,
     forecastText: string,
-    { cached = false, savedAt = null }: DisplayWeatherOptions = {}
+    { cached = false, savedAt = null, currentTemperature: currentTemp, transitionTemperature: transitionTemp }: DisplayWeatherOptions = {}
   ): void {
-    const { card, now, next, time, day, meta } = this.elements;
+    const { card, now, next, time, day, meta, currentTemperature, transitionTemperature } = this.elements;
     const forecastTime = forecastTimeParts(forecastText);
     const noRainExpected = raining === false && forecastText.includes('No rain is forecast');
     const tone = raining === null ? 'neutral'
@@ -46,6 +52,9 @@ export class WeatherSummaryView {
       : noRainExpected ? 'NO RAIN EXPECTED' : 'TIME UNKNOWN';
     time.textContent = forecastTime?.time ?? '';
     day.textContent = forecastTime?.day ?? '';
+    currentTemperature.textContent = Number.isFinite(currentTemp) ? `${Math.round(Number(currentTemp))}°C` : '';
+    transitionTemperature.textContent = forecastTime && Number.isFinite(transitionTemp)
+      ? `${Math.round(Number(transitionTemp))}°C expected` : '';
     const metadata = [cached ? 'CACHED' : null, 'APPROXIMATE']
       .filter((value): value is string => Boolean(value));
     if (Number.isFinite(savedAt)) {

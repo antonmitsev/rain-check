@@ -125,3 +125,29 @@ export function rainUntil(data: WeatherResponse): string {
   }
   return 'The near-term forecast does not show a clear end to the rain.';
 }
+
+/** Temperature at the forecast hour represented by the rain transition. */
+export function transitionTemperature(data: WeatherResponse, raining: boolean | null): number | null {
+  if (raining === null) return null;
+  const hours = forecastHours(data);
+  const temperatures = data.hourly?.temperature_2m;
+  if (!hours || !Array.isArray(temperatures)) return null;
+  const { times, amounts, start } = hours;
+  if (raining) {
+    for (let index = start; index < Math.min(times.length, amounts.length) - 1; index += 1) {
+      const amount = amounts[index];
+      const nextAmount = amounts[index + 1];
+      if (Number.isFinite(amount) && Number.isFinite(nextAmount)
+          && Number(amount) < RAIN_THRESHOLD_MM && Number(nextAmount) < RAIN_THRESHOLD_MM) {
+        return Number.isFinite(temperatures[index]) ? Number(temperatures[index]) : null;
+      }
+    }
+    return null;
+  }
+  for (let index = start; index < Math.min(times.length, amounts.length); index += 1) {
+    if (Number.isFinite(amounts[index]) && Number(amounts[index]) >= RAIN_THRESHOLD_MM) {
+      return Number.isFinite(temperatures[index]) ? Number(temperatures[index]) : null;
+    }
+  }
+  return null;
+}
