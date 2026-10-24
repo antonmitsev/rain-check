@@ -28,6 +28,8 @@ project pins 26.12.1 in `.nvmrc`; with nvm, run `nvm install` and `nvm use`
 before installing dependencies. Keep the local Node runtime updated when new
 security releases are published. `npm audit` checks the packages, not the Node.js
 runtime. The Apache/cPanel host does not run Node.js.
+The Vite 6.x development server requires 6.4.5 or later to include the
+[file-access security fix](https://github.com/vitejs/vite/security/advisories/GHSA-8g5g-mxqh-grgj).
 
 ```sh
 nvm install

@@ -14,7 +14,7 @@
     "test": "tsx --test tests/*.test.js"
   },
   "dependencies": {
-    "vite": "^6.3.5"
+    "vite": "^6.4.5"
   },
   "devDependencies": {
     "@resvg/resvg-js": "^2.6.2",
