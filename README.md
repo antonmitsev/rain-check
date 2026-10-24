@@ -22,9 +22,16 @@ A minimal weather app that checks current rainfall and its next expected change 
 
 ## Run locally
 
-Node.js and npm are required **only on the development machine**.
+Node.js and npm are required **only on the development machine**. Use Node.js
+**26.12.1 or a newer 26.x security release** for development and builds. The
+project pins 26.12.1 in `.nvmrc`; with nvm, run `nvm install` and `nvm use`
+before installing dependencies. Keep the local Node runtime updated when new
+security releases are published. `npm audit` checks the packages, not the Node.js
+runtime. The Apache/cPanel host does not run Node.js.
 
 ```sh
+nvm install
+nvm use
 npm install
 npm run dev
 ```
